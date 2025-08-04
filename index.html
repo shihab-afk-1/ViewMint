@@ -450,7 +450,7 @@
             // --- App Constants & Configuration ---
             const ADMIN_ID = 7196818477; // EDIT_THIS: Replace with your numeric Telegram User ID.
             const BOT_USERNAME = 'ViewMintBot'; // EDIT_THIS: Replace with your bot's username.
-            const WEBAPP_NAME = 'viewmint';   // EDIT_THIS: Replace with your web app's short name.
+            const WEBAPP_URL = 'https://your-domain.com/path-to-your-webapp.html'; // NEW: The full URL of your web app.
             
             const WITHDRAW_THRESHOLD_USDT = 10;      // 10 USDT for crypto
             const WITHDRAW_THRESHOLD_BKASH = 5;      // 5 USDT for Bkash
@@ -466,7 +466,8 @@
                 totalAdCount: 0,
                 dailyAdCount: 0,
                 lastAdDate: null,
-                referralCount: 0 
+                referralCount: 0,
+                referredBy: null // NEW: Tracks the user who referred this user.
             };
 
             // ---- State Management ----
@@ -638,8 +639,9 @@
             
             function generateReferralLink() {
                 const user = tg.initDataUnsafe.user;
-                if (user && user.id && BOT_USERNAME !== 'ViewMintBot' && WEBAPP_NAME !== 'viewmint') {
-                    referralLinkDisplay.textContent = `https://t.me/${BOT_USERNAME}/${WEBAPP_NAME}?startapp=ref${user.id}`;
+                if (user && user.id && BOT_USERNAME !== 'ViewMintBot') {
+                    // NEW: Changed the referral link format to use the bot's direct start link
+                    referralLinkDisplay.textContent = `https://t.me/${BOT_USERNAME}?start=${user.id}`;
                 } else {
                     referralLinkDisplay.textContent = "Referral link cannot be generated. Configure bot info in the script.";
                     referralLinkDisplay.style.color = "var(--warning-color)";
@@ -649,10 +651,29 @@
             }
 
             function handleReferralStart() {
-                if (tg.initDataUnsafe.start_param) {
-                    const referrerId = tg.initDataUnsafe.start_param.replace('ref', '');
-                    console.log("App started with referral parameter. Referrer ID:", referrerId);
-                    showStatus('Welcome! You joined via a referral link.', 'success', 5000);
+                const user = tg.initDataUnsafe.user;
+                // NEW: Use the 'start' parameter directly
+                const startParam = tg.initDataUnsafe.start_param;
+
+                if (startParam && startParam.length > 0) {
+                    const referrerId = startParam;
+                    // Check if the user is not referring themselves and hasn't been referred before
+                    if (user.id.toString() !== referrerId && !state.referredBy) {
+                        console.log("App started with referral parameter. Referrer ID:", referrerId);
+                        // Store the referrer's ID and mark this user as referred
+                        state.referredBy = referrerId;
+                        saveState();
+
+                        // You'll need a backend to handle the referral bonus for both users.
+                        // Here, we just display a message. A real system would need a server
+                        // to verify the new user and credit the referrer's account.
+                        showStatus(`Welcome! You were referred by user ID ${referrerId}.`, 'success', 5000);
+                        
+                        // Example of how a bonus might be given to the new user.
+                        // state.balanceInCents += 100; // Example: give 1 USDT bonus
+                        // saveState();
+                        // updateUI();
+                    }
                 }
             }
             
@@ -691,6 +712,17 @@
                         .catch(() => showStatus('Could not copy link.', 'error'));
                 }
             });
+            
+            // NEW: Add event listener for when the web app is closed.
+            tg.onEvent('close', function() {
+                // Here you can send a message to the bot's backend to process
+                // a referral bonus if a new user has been successfully referred.
+                if (state.referredBy && tg.initDataUnsafe.user.id !== state.referredBy) {
+                    // This is just a conceptual example. A real implementation would
+                    // require a backend server to listen to this message.
+                    // tg.sendData(`referred_user_closed:${tg.initDataUnsafe.user.id}:${state.referredBy}`);
+                }
+            });
 
             // ---- Initialization ----
             function initializeApp() {
@@ -698,9 +730,9 @@
                 tg.expand();
                 
                 loadState();
+                handleReferralStart(); // NEW: Call this early to process the start parameter
                 updateUI();
                 generateReferralLink();
-                handleReferralStart();
                 
                 const user = tg.initDataUnsafe.user;
                 if (user && user.id === ADMIN_ID) {
