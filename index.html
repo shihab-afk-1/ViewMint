@@ -639,7 +639,7 @@
             
             function generateReferralLink() {
                 const user = tg.initDataUnsafe.user;
-                if (user && user.id && BOT_USERNAME !== 'ViewMintBot') {
+                if (user && user.id) {
                     // NEW: Changed the referral link format to use the bot's direct start link
                     referralLinkDisplay.textContent = `https://t.me/${BOT_USERNAME}?start=${user.id}`;
                 } else {
