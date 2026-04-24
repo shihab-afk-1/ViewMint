@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maimum-scale=1.0, user-scalable=no">
     <title>Sm Chats - Pro</title>
     
     <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://font.googeapis.com/css2?famiy=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Tone.js & Emoji Picker -->
@@ -82,6 +82,36 @@
         .btn-danger { background: var(--danger); color: white; }
         .btn-icon { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-dark); padding: 8px; }
         
+        /* Image Optimization - Perfect Circle Fits */
+        .avatar, #fp-img, #menu-dp, #chat-header-img, #header-avatar, #incoming-avatar, #call-avatar {
+            object-fit: cover !important;
+            object-position: center !important;
+        }
+
+        /* Chat Link Styles */
+        .chat-link {
+            color: #00e5ff;
+            text-decoration: underline;
+            transition: color 0.2s ease;
+            word-break: break-all;
+        }
+        .chat-link:hover {
+            color: #00b8cc;
+        }
+
+        /* Icon Hover Enhancements */
+        .copy-icon, .del-icon {
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+        .copy-icon:hover {
+            transform: scale(1.15);
+            color: var(--primary-purple);
+        }
+        .del-icon:hover {
+            transform: scale(1.15);
+            color: #ff0000;
+        }
+
         input, textarea { 
             background: #f4f4f8; border: none; color: var(--text-dark); 
             padding: 15px 20px; border-radius: 20px; width: 100%; outline: none; 
@@ -107,7 +137,7 @@
         .view { flex: 1; overflow-y: auto; padding-bottom: 80px; }
         .list-item { display: flex; align-items: center; padding: 15px 25px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--border-color); }
         .list-item:hover { background: var(--border-color); }
-        .avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 2px solid transparent; }
+        .avatar { width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; }
         .avatar.online { border-color: var(--success); }
         .item-info { flex: 1; }
         .item-name { font-weight: 600; font-size: 1.05rem; color: var(--text-dark); }
@@ -197,7 +227,7 @@
             align-self: flex-start; margin-right: auto;
             background: var(--bubble-other); color: var(--bubble-other-text); 
             border-bottom-left-radius: 4px;
-}
+        }
         
         .msg-meta {
             display: flex; justify-content: flex-end; align-items: center; gap: 4px;
@@ -315,7 +345,6 @@
             <div style="text-align:center; margin-bottom:20px;">
                 <input type="text" id="setup-emoji" placeholder="😊" maxlength="2" style="width:80px; text-align:center; font-size:2rem; padding:10px;">
             </div>
-            <!-- Added DP URL input for Profile Setup -->
             <input type="url" id="setup-dp-url" placeholder="Photo URL (https://...)">
             <input type="text" id="setup-name" placeholder="Display Name (max 20)" maxlength="20">
             <input type="text" id="setup-bio" placeholder="Bio">
@@ -443,13 +472,12 @@
                 <!-- ID Copy Feature in Drawer -->
                 <div style="display:flex; align-items:center; gap:8px;">
                     <span id="menu-id" style="font-size:0.7rem; opacity:0.6;">ID: ...</span>
-                    <i class="far fa-copy" style="cursor:pointer; font-size:0.9rem;" onclick="copyUserId()"></i>
+                    <i class="far fa-copy copy-icon" style="cursor:pointer; font-size:0.9rem;" onclick="copyUserId()"></i>
                 </div>
             </div>
         </div>
         <ul class="menu-list">
             <li onclick="openEditProfile()"><i class="far fa-user"></i> View profile</li>
-            <!-- New Photo Hosting Menu -->
             <li onclick="openPhotoHosting()"><i class="fas fa-image"></i> Photo Hosting</li>
             <li onclick="openNewGroup()"><i class="fas fa-user-group"></i> New group</li>
             <li onclick="openSearchFriends()"><i class="fas fa-search"></i> Search friends</li>
@@ -505,7 +533,6 @@
                     <span class="slider"></span>
                 </label>
             </div>
-            <!-- New Contact Us Option -->
             <div class="list-item" onclick="openContactUs()"><div class="item-info">Contact Us</div><i class="fas fa-chevron-right" style="color:var(--text-grey)"></i></div>
             <div class="list-item" onclick="openAbout()"><div class="item-info">About</div><i class="fas fa-chevron-right" style="color:var(--text-grey)"></i></div>
             <div class="list-item" onclick="openTerms()"><div class="item-info">Team & Conditions</div><i class="fas fa-chevron-right" style="color:var(--text-grey)"></i></div>
@@ -542,7 +569,6 @@
              <div style="margin-bottom:20px;">
                  <input type="text" id="edit-emoji" placeholder="😊" maxlength="2" style="width:80px; text-align:center; font-size:2rem; padding:10px;">
              </div>
-            <!-- Added DP URL input for Edit Profile -->
             <input type="url" id="edit-dp-url" placeholder="Photo URL (https://...)">
             <input type="text" id="edit-name" placeholder="Display Name">
             <input type="text" id="edit-bio" placeholder="Bio">
@@ -552,6 +578,7 @@
         </div>
     </div>
 
+    <!-- Friend Profile Modal -->
     <div id="friend-profile-modal" class="full-screen hidden" style="z-index:110; background:var(--bg-card);">
         <div class="modal-header"><h3>Profile</h3><button class="btn-icon" onclick="toggleModal('friend-profile-modal', false)"><i class="fas fa-times"></i></button></div>
         <div class="modal-body" style="text-align:center; margin-top:20px;">
@@ -561,7 +588,11 @@
             <div style="background:var(--border-color); padding:15px; border-radius:15px; margin-top:20px; text-align:left;">
                 <p><strong><i class="fas fa-map-marker-alt"></i> Address:</strong> <span id="fp-address">N/A</span></p>
                 <p style="margin-top:10px;"><strong><i class="fas fa-graduation-cap"></i> Study:</strong> <span id="fp-study">N/A</span></p>
-                <p style="margin-top:10px; color:var(--primary-purple); font-weight:600;"><span id="fp-id"></span></p>
+                <!-- Clickable Global ID Copy Feature -->
+                <p style="margin-top:10px; color:var(--primary-purple); font-weight:600; display:flex; align-items:center; gap:8px;">
+                    <span id="fp-id"></span>
+                    <i class="far fa-copy copy-icon" style="cursor:pointer; font-size:1.1rem;" onclick="copyFriendId()"></i>
+                </p>
             </div>
             <button class="btn btn-danger" id="btn-block-user" style="width:100%; margin-top:30px;"><i class="fas fa-ban"></i> Block User</button>
         </div>
@@ -623,7 +654,6 @@
     let isGroupChat = false;
     let isRequestsTabActive = false;
     
-    // WebRTC Variables
     let peerConnection = null;
     let localStream = null;
     let currentCallId = null;
@@ -633,11 +663,10 @@
     let iceCandidateQueue =[]; 
     let isCallEnding = false; 
     
-    let myFriends = [];
+    let myFriends =[];
     let blockedUsers =[];
     let selectedMsgId = null;
 
-    // Free STUN Servers
     const servers = { 
         iceServers: [
             { urls:['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
@@ -653,7 +682,6 @@
     getEl('menu-overlay').onclick = closeMenu;
     getEl('back-chat').onclick = () => toggleModal('chat-interface', false);
 
-    // Toast logic
     window.showToast = (msg) => {
         const t = getEl('toast');
         t.innerText = msg; t.classList.add('show');
@@ -663,6 +691,15 @@
     // --- ID Copy logic ---
     window.copyUserId = () => {
         const idText = getEl('menu-id').innerText.replace('ID: ', '').trim();
+        if(idText) {
+            navigator.clipboard.writeText(idText);
+            showToast("ID Copied!");
+        }
+    };
+
+    // New logic for global Friend ID copy inside modal
+    window.copyFriendId = () => {
+        const idText = getEl('fp-id').innerText.replace('ID: ', '').trim();
         if(idText) {
             navigator.clipboard.writeText(idText);
             showToast("ID Copied!");
@@ -680,7 +717,6 @@
         
         const formData = new FormData();
         formData.append('image', fileInput.files[0]);
-        // Free ImgBB API key suitable for generic web uploads
         const apiKey = 'c1bb4f9b3dcfb34e23bec4b8c882c053';
         
         try {
@@ -741,6 +777,13 @@
         if(diff < oneDay * 2) return "Yesterday";
         return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
+    
+    // --- New Linkify System ---
+    const linkify = (text) => {
+        if(!text) return '';
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return text.replace(urlRegex, url => `<a href="${url}" target="_blank" class="chat-link" onclick="event.stopPropagation()">${url}</a>`);
+    };
 
     // --- DARK MODE ---
     const darkModeToggle = getEl('dark-mode-toggle');
@@ -775,13 +818,12 @@
         
         let dpUrl = existing.dpUrl;
 
-        // DP Logic Priority Rules:
         if (photoUrl) {
-            dpUrl = photoUrl; // 1. Using provided Photo URL
+            dpUrl = photoUrl; 
         } else if (emoji) {
-            dpUrl = emojiToSVG(emoji); // 2. Using Emoji if URL is blank
+            dpUrl = emojiToSVG(emoji); 
         } else if (!dpUrl || mode === 'setup') {
-            dpUrl = emojiToSVG(name.charAt(0)); // 3. Fallback to First Letter
+            dpUrl = emojiToSVG(name.charAt(0)); 
         }
 
         const userId = existing.userId || generateUniqueId();
@@ -818,7 +860,6 @@
     function initApp() {
         loadProfileUI(); loadContacts(); loadRequests(); loadCalls(); loadBlockedUsers();
         
-        // Handling tabs & Requests notification dot removal
         document.querySelectorAll('.tab-pill').forEach(t => t.onclick = () => {
             document.querySelectorAll('.tab-pill').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.view').forEach(x=>x.classList.add('hidden'));
             t.classList.add('active'); getEl(`tab-${t.dataset.tab}`).classList.remove('hidden');
@@ -866,7 +907,6 @@
         getEl('edit-address').value = d.address || ''; 
         getEl('edit-study').value = d.study || ''; 
         
-        // Clear Emoji and set DP URL if it's an external Photo link
         getEl('edit-emoji').value = '';
         getEl('edit-dp-url').value = (d.dpUrl && d.dpUrl.startsWith('http')) ? d.dpUrl : '';
         
@@ -967,12 +1007,17 @@
                 if(msgDate !== lastDate) { msgList.innerHTML += `<div class="date-divider"><span class="date-pill">${msgDate}</span></div>`; lastDate = msgDate; }
                 const isMe = m.from === currentUser.uid; const d = document.createElement('div'); d.className = `message-bubble ${isMe ? 'msg-me' : 'msg-other'}`;
                 let tickIcon = isMe ? (m.seen ? '<i class="fas fa-check-double msg-tick read"></i>' : '<i class="fas fa-check msg-tick"></i>') : '';
-                d.innerHTML = `<div class="msg-text">${m.txt}</div><div class="msg-meta"><span>${formatTime(m.ts)}</span>${tickIcon}</div>`;
+                
+                // Using Linkify
+                d.innerHTML = `<div class="msg-text">${linkify(m.txt)}</div><div class="msg-meta"><span>${formatTime(m.ts)}</span>${tickIcon}</div>`;
+                
                 addLongPressListener(d, msgId, m.txt, isMe);
                 if(m.reactions) { const rKey = Object.keys(m.reactions)[0]; d.innerHTML += `<div class="msg-reaction-badge"><span style="background:var(--bg-card); padding:2px 5px; border-radius:10px; font-size:0.8rem; box-shadow:0 2px 5px rgba(0,0,0,0.1); position:absolute; bottom:-10px; right:0;">${m.reactions[rKey]}</span></div>`; }
                 msgList.appendChild(d);
             });
-            msgList.scrollTop = msgList.scrollHeight;
+            // Smooth Scroll on Message Append
+            const chatRoom = getEl('chat-room');
+            chatRoom.scrollTo({ top: chatRoom.scrollHeight, behavior: 'smooth' });
         });
 
         getEl('msg-input').onkeyup = () => { 
@@ -1009,7 +1054,7 @@
         getEl('ctx-delete').onclick = () => { if(isMe) remove(ref(db, `messages/${currentChatId}/${msgId}`)); menu.style.display = 'none'; };
         getEl('ctx-copy').onclick = () => { navigator.clipboard.writeText(txt); showToast("Message Copied!"); menu.style.display = 'none'; };
         getEl('ctx-reply').onclick = () => { getEl('msg-input').value = `Replying to: "${txt.substring(0,10)}..." `; menu.style.display = 'none'; };
-        document.querySelectorAll('.reaction-emoji').forEach(elem => { elem.onclick = () => { update(ref(db, `messages/${currentChatId}/${msgId}/reactions`), { [currentUser.uid]: elem.dataset.r }); menu.style.display = 'none'; } });
+        document.querySelectorAll('.reaction-emoji').forEach(elem => { elem.onclick = () => { update(ref(db, `messages/${currentChatId}/${msgId}/reactions`), {[currentUser.uid]: elem.dataset.r }); menu.style.display = 'none'; } });
         const close = (ev) => { if(!menu.contains(ev.target)) { menu.style.display='none'; document.removeEventListener('click', close); } };
         setTimeout(() => document.addEventListener('click', close), 100);
     }
@@ -1043,7 +1088,6 @@
     };
     window.reqFriend = async (uid) => { await set(ref(db, `requests/${uid}/${currentUser.uid}`), { from:currentUser.uid }); showToast("Request Sent!"); toggleModal('add-friend-modal', false); };
     
-    // --- UPDATED Requests Loading with Dot and Profile View logic ---
     function loadRequests() {
         onValue(ref(db, `requests/${currentUser.uid}`), snap => {
             const div = getEl('requests-list-container'); div.innerHTML = '';
@@ -1054,7 +1098,6 @@
                 snap.forEach(c => {
                     get(ref(db, `users/${c.key}`)).then(u => {
                         const user = u.val();
-                        // Div wraps Avatar and Info making it clickable to view Profile
                         div.innerHTML += `
                         <div class="list-item">
                             <div style="display:flex; flex:1; align-items:center; cursor:pointer;" onclick="openRequesterProfile('${c.key}', '${user.name}', '${user.dpUrl}', '${user.bio}', '${user.address}', '${user.study}', '${user.userId}')">
@@ -1120,6 +1163,7 @@
         }
     }
 
+    // --- Call Log History Feature Additions ---
     function loadCalls() {
         onValue(ref(db, `callLogs/${currentUser.uid}`), snap => {
             const div = getEl('call-logs-container'); div.innerHTML = '';
@@ -1127,15 +1171,48 @@
                 const l = c.val();
                 div.prepend(Object.assign(document.createElement('div'), {
                     className: 'list-item',
-                    innerHTML: `<div style="width:40px; height:40px; background:#f0f0f5; border-radius:50%; display:flex; justify-content:center; align-items:center; margin-right:15px; color:var(--primary-purple);"><i class="fas fa-${l.type==='video'?'video':'phone'}"></i></div><div class="item-info"><div class="item-name">${l.with}</div><div class="item-sub">${new Date(l.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div></div>`
+                    innerHTML: `
+                        <div style="width:40px; height:40px; background:#f0f0f5; border-radius:50%; display:flex; justify-content:center; align-items:center; margin-right:15px; color:var(--primary-purple);">
+                            <i class="fas fa-${l.type==='video'?'video':'phone'}"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-name">${l.with}</div>
+                            <div class="item-sub">${new Date(l.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+                        </div>
+                        <div style="margin-left: auto; padding: 10px; cursor: pointer; color: var(--danger);" onclick="deleteCallLog('${c.key}', event)">
+                            <i class="fas fa-trash-alt del-icon"></i>
+                        </div>`
                 }));
             });
         });
     }
 
+    window.deleteCallLog = async (logId, e) => {
+        if(e) e.stopPropagation();
+        if(confirm("Are you sure you want to delete this call log?")) {
+            await remove(ref(db, `callLogs/${currentUser.uid}/${logId}`));
+            showToast("Call log deleted!");
+        }
+    };
+
     // ============================================
-    // WEBRTC LOGIC (Untouched functionality)
+    // WEBRTC LOGIC (Modified to support HTTP environments)
     // ============================================
+
+    async function getMediaStream(constraints) {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            return await navigator.mediaDevices.getUserMedia(constraints);
+        } else {
+            const legacyGetUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+            if (legacyGetUserMedia) {
+                return new Promise((resolve, reject) => {
+                    legacyGetUserMedia.call(navigator, constraints, resolve, reject);
+                });
+            } else {
+                throw new Error("Media Devices API is blocked or missing. Ensure camera/mic permissions are granted.");
+            }
+        }
+    }
 
     getEl('btn-audio-call').onclick = () => { if(!isBlocked(currentChatUser.uid)) startCall(currentChatUser.uid, 'voice'); else alert("Blocked user"); };
     getEl('btn-video-call').onclick = () => { if(!isBlocked(currentChatUser.uid)) startCall(currentChatUser.uid, 'video'); else alert("Blocked user"); };
@@ -1184,10 +1261,6 @@
 
     async function startCall(targetUid, type) {
         if(isGroupChat) return;
-        if(location.hostname !== 'localhost' && location.protocol !== 'https:') {
-            alert("Video/Audio calls require HTTPS!");
-            return;
-        }
 
         currentCallId = generateUniqueId();
         isCallEnding = false; 
@@ -1197,7 +1270,8 @@
 
         try {
             const constraints = type === 'video' ? { video: true, audio: true } : { audio: true, video: false };
-            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            
+            localStream = await getMediaStream(constraints);
             
             const localVid = getEl('local-video');
             localVid.srcObject = localStream;
@@ -1227,7 +1301,7 @@
 
         } catch (err) { 
             console.error("Media Error:", err); 
-            alert("Could not access camera/microphone. Check permissions."); 
+            alert("Could not access camera/microphone. Check permissions or network context."); 
             hangup(); 
         }
     }
@@ -1248,7 +1322,8 @@
 
         try {
             const constraints = type === 'video' ? { video: true, audio: true } : { audio: true, video: false };
-            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            
+            localStream = await getMediaStream(constraints);
             
             const localVid = getEl('local-video');
             localVid.srcObject = localStream;
@@ -1376,4 +1451,4 @@
 
 </script>
 </body>
-                </html>
+    </html>
