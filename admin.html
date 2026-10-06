@@ -1,0 +1,2092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sm Chats - Admin Panel</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-purple: #5b4dff;
+            --primary-gradient: linear-gradient(135deg, #7c71ff 0%, #3a2db3 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-hover: rgba(255, 255, 255, 0.2);
+            --success: #2ed573;
+            --danger: #ff4757;
+            --info: #1e90ff;
+            --warning: #ffa502;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body {
+            background: var(--primary-gradient);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- LOGIN SCREEN --- */
+        #admin-login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--primary-gradient); z-index: 1000;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .login-box {
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            padding: 40px; border-radius: 20px; width: 90%; max-width: 400px;
+            text-align: center; border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .login-box h2 { margin-bottom: 20px; font-weight: 600; }
+        .login-box input {
+            width: 100%; padding: 15px; margin-bottom: 15px;
+            border-radius: 30px; border: none; outline: none;
+            background: rgba(255,255,255,0.9); color: #333; font-size: 1rem;
+        }
+        .login-box button { width: 100%; }
+
+        /* Sidebar */
+        .sidebar { width: 260px; height: 100vh; padding: 30px 20px; display: flex; flex-direction: column; gap: 15px; z-index: 10; overflow-y: auto;}
+        .brand { font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 20px; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .nav-item { padding: 15px 20px; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 15px; font-weight: 500; }
+        .nav-item:hover, .nav-item.active { background: var(--glass-hover); transform: translateX(5px); border-left: 4px solid white; }
+        .logout-btn { margin-top: auto; background: rgba(255, 71, 87, 0.2); color: #ff4757; }
+        .logout-btn:hover { background: #ff4757; color: white; border: none; }
+
+        /* Main Content */
+        .main-content { flex: 1; padding: 30px; height: 100vh; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .section { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Dashboard Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .stat-card { padding: 25px; border-radius: 20px; text-align: center; }
+        .stat-card i { font-size: 2.5rem; margin-bottom: 15px; opacity: 0.8; }
+        .stat-card h3 { font-size: 2rem; margin-bottom: 5px; }
+        .stat-card p { font-size: 0.9rem; opacity: 0.8; }
+
+        /* Tables */
+        .table-container { border-radius: 20px; padding: 20px; overflow-x: auto; background: rgba(0,0,0,0.2); }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 15px; border-bottom: 1px solid var(--glass-border); vertical-align: middle; }
+        th { font-weight: 600; opacity: 0.9; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.05); }
+        .user-dp { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 10px; }
+
+        /* Forms & Buttons */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        input[type="text"], input[type="email"], input[type="password"], select, textarea { width: 100%; padding: 15px; border-radius: 15px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; outline: none; font-family: inherit; }
+        select option { background: #3a2db3; color: white; }
+        .btn { background: white; color: var(--primary-purple); border: none; padding: 12px 30px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn:hover:not(:disabled) { background: #f0f0f0; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        
+        /* Small Action Buttons */
+        .btn-sm { padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; border: none; color: white; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-sm:hover { transform: translateY(-2px); opacity: 0.9; }
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); }
+        .btn-info { background: var(--info); }
+        .btn-warning { background: var(--warning); }
+
+        .radio-group { display: flex; gap: 20px; margin-bottom: 15px; }
+        .radio-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        
+        /* Queue System Classes */
+        .queue-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--glass-border);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+        .hidden { display: none !important; }
+
+        /* Toast Notification Container */
+        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { min-width: 250px; padding: 15px 20px; border-radius: 12px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); color: white; display: flex; align-items: center; gap: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: slideIn 0.3s ease forwards; font-weight: 500; }
+        .toast.success i { color: var(--success); }
+        .toast.error i { color: var(--danger); }
+        .toast.warning i { color: var(--warning); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        /* --- Search System Styles --- */
+        .search-history-tag {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px solid var(--glass-border);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.3s;
+        }
+        .search-history-tag:hover { background: rgba(255, 255, 255, 0.2); }
+        .search-result-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid var(--glass-border);
+            margin-top: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+        .search-result-image {
+            width: 100px; height: 100px;
+            border-radius: 15px;
+            object-fit: cover;
+            border: 2px solid var(--glass-border);
+        }
+        .search-result-details { flex: 1; min-width: 250px; }
+        .search-result-details h4 { font-size: 1.4rem; margin-bottom: 5px; color: var(--info); }
+        .search-result-details p { font-size: 0.9rem; color: #ddd; margin-bottom: 3px; }
+        .search-result-actions {
+            display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;
+        }
+
+      .telegram-config-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  max-width: 650px;
+  margin: 20px auto;
+  font-family: sans-serif;
+}
+.card-header h3 { margin: 0 0 6px 0; color: #222; }
+.card-header p { margin: 0 0 20px 0; color: #666; font-size: 14px; }
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; color: #333; }
+.form-control {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.form-group small { color: #888; font-size: 12px; }
+.checkbox-row label { margin-right: 15px; font-weight: normal; cursor: pointer; }
+.required { color: red; }
+
+/* Switch Toggle */
+.toggle-group { display: flex; justify-content: space-between; align-items: center; }
+.switch { position: relative; display: inline-block; width: 48px; height: 26px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #28a745; }
+input:checked + .slider:before { transform: translateX(22px); }
+
+/* Buttons */
+.action-buttons { display: flex; gap: 10px; margin-top: 20px; }
+.btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.btn-save { background: #007bff; color: #fff; }
+.btn-test { background: #17a2b8; color: #fff; }
+.btn-upload { background: #6c757d; color: #fff; }
+.btn:hover { opacity: 0.9; }
+
+/* Alert Box */
+.status-box { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 14px; }
+.status-box.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.status-box.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.status-box.loading { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Admin Login Screen -->
+    <div id="admin-login-screen">
+        <div class="login-box">
+            <h2>Admin Login</h2>
+            <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Please login to access the dashboard.</p>
+            <input type="email" id="admin-email" placeholder="Admin Email">
+            <input type="password" id="admin-pass" placeholder="Password">
+            <button class="btn" id="btn-admin-login">Login to Dashboard</button>
+            <p id="login-error" style="color: #ff4757; margin-top: 15px; font-size: 0.85rem; display: none;"></p>
+        </div>
+    </div>
+
+    <!-- Main Admin App (Hidden by default) -->
+    <div id="main-admin-app" class="hidden" style="width: 100%; display: flex;">
+        <!-- Sidebar -->
+        <div class="sidebar glass">
+            <div class="brand">
+                <i class="fas fa-shield-alt"></i> Admin Pro
+            </div>
+            
+            <div class="nav-item active" onclick="switchTab('dashboard')">
+                <i class="fas fa-home"></i> Dashboard
+            </div>
+            <div class="nav-item" onclick="switchTab('advanced-search')">
+                <i class="fas fa-search"></i> Advanced Search
+            </div>
+            <div class="nav-item" onclick="switchTab('users')">
+                <i class="fas fa-users"></i> User Management
+            </div>
+            <div class="nav-item" onclick="switchTab('sponsored-ads')">
+                <i class="fas fa-ad"></i> Sponsored Ads Management
+            </div>
+            <!-- Added Verification Requests Tab -->
+            <div class="nav-item" onclick="switchTab('verifications')">
+                <i class="fas fa-certificate"></i> Verification Requests
+            </div>
+            <!-- Added API Settings Tab -->
+            <div class="nav-item" onclick="switchTab('api-settings')">
+                <i class="fas fa-code"></i> API Settings
+            </div>
+            <!-- Added Payment Settings Tab -->
+            <div class="nav-item" onclick="switchTab('payment-settings')">
+                <i class="fas fa-money-check-alt"></i> Payment Settings
+            </div>
+            <!-- Added Monetization & Withdraw Tabs -->
+            <div class="nav-item" onclick="switchTab('monetization-apps')">
+                <i class="fas fa-gem"></i> Monetization Apps
+            </div>
+            <div class="nav-item" onclick="switchTab('withdrawals')">
+                <i class="fas fa-hand-holding-usd"></i> Withdraw Requests
+            </div>
+            <div class="nav-item" onclick="switchTab('reports')">
+                <i class="fas fa-flag"></i> Reports Viewer
+            </div>
+            <div class="nav-item" onclick="switchTab('post-reports')">
+                <i class="fas fa-exclamation-triangle"></i> Post Reports
+            </div>
+            <div class="nav-item" onclick="switchTab('support')">
+                <i class="fas fa-envelope"></i> Support Inbox
+            </div>
+            <div class="nav-item" onclick="switchTab('notifications')">
+                <i class="fas fa-bell"></i> Notifications
+            </div>
+
+            <div class="nav-item logout-btn" id="btn-admin-logout">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h2>Admin Control Panel</h2>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="user-dp glass" style="display:flex; justify-content:center; align-items:center;"><i class="fas fa-user-shield"></i></div>
+                    <span id="admin-display-email">Admin</span>
+                </div>
+            </div>
+<!-- Advanced Search Section -->
+            <div id="advanced-search" class="section">
+                <h3 style="margin-bottom: 20px;">Advanced Search (User & Post)</h3>
+                <div class="glass" style="padding: 25px; border-radius: 20px; background: rgba(0,0,0,0.2);">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="global-search-input" placeholder="Enter User ID, UID, or Post ID..." style="flex:1; min-width: 250px;" onkeypress="if(event.key === 'Enter') performAdvancedSearch()">
+                        <button class="btn" onclick="performAdvancedSearch()"><i class="fas fa-search"></i> Search</button>
+                    </div>
+                    
+                    <!-- Search History -->
+                    <div style="margin-top: 15px;">
+                        <small style="color: #aaa; display: block; margin-bottom: 8px;">Recent Searches:</small>
+                        <div id="search-history-container" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <!-- History tags will appear here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div id="search-results-container"></div>
+            </div>
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section active">
+                <div class="stats-grid">
+                    <div class="stat-card glass">
+                        <i class="fas fa-users"></i>
+                        <h3 id="total-users">0</h3>
+                        <p>Total Registered Users</p>
+                    </div>
+                    <div class="stat-card glass">
+                        <i class="fas fa-flag"></i>
+                        <h3 id="total-reports">0</h3>
+                        <p>Pending Reports</p>
+                    </div>
+                    <div class="stat-card glass">
+                        <i class="fas fa-envelope"></i>
+                        <h3 id="total-messages">0</h3>
+                        <p>Support Messages</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="users" class="section">
+                <h3 style="margin-bottom: 20px;">User Management</h3>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Profile</th>
+                                <th>Name</th>
+                                <th>User ID (Global)</th>
+                                <th>Email Address</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            <tr><td colspan="5" style="text-align:center;">Loading users...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <!-- Sponsored Ads Section -->
+            <div id="sponsored-ads" class="section">
+                <h3 style="margin-bottom: 20px;">Sponsored Ads Moderation</h3>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ad Details</th>
+                                <th>Advertiser</th>
+                                <th>Budget & Target</th>
+                                <th>Analytics</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ads-tbody">
+                            <tr><td colspan="6" style="text-align:center;">Loading Ads...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Verification Requests Section (MODIFIED) -->
+            <div id="verifications" class="section">
+                <h3 style="margin-bottom: 20px;">Blue Tick Verification Requests</h3>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User Info</th>
+                                <th>Submitted Details</th>
+                                <th>Payment (TrxID)</th>
+                                <th>Document</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="verifications-tbody">
+                            <tr><td colspan="7" style="text-align:center;">Loading verification requests...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+          
+            <!-- API Settings Section (NEW) -->
+            <div id="api-settings" class="section">
+                <h3 style="margin-bottom: 20px;">API Settings</h3>
+                <div class="glass" style="padding: 30px; border-radius: 20px; max-width: 600px; background: rgba(0,0,0,0.2);">
+                    <div class="form-group">
+                        <label><i class="fas fa-image" style="color: var(--info);"></i> ImgBB API Key</label>
+                        <input type="text" id="api-imgbb" placeholder="Enter ImgBB API Key">
+                        <small style="color: #ccc; display: block; margin-top: 5px;">This key is used for Photo Hosting uploads from User Panel.</small>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button class="btn" id="btn-save-api" onclick="saveApiSettings()">Save Settings <i class="fas fa-save" style="margin-left:5px;"></i></button>
+                    </div>
+                </div>
+              <!-- ========================================== -->
+<!-- TELEGRAM MEDIA STORAGE SETTINGS SECTION    -->
+<!-- ========================================== -->
+<div class="card telegram-config-card">
+  <div class="card-header">
+    <h3>⚙️ Telegram Media Storage Settings</h3>
+    <p>সরাসরি টেলিগ্রাম প্রাইভেট চ্যানেলে ফাইল হোস্টিং কনফিগারেশন</p>
+  </div>
+
+  <div class="card-body">
+    <!-- Enable / Disable Toggle -->
+    <div class="form-group toggle-group">
+      <label for="tgEnabled">Telegram Storage চালু রাখবেন?</label>
+      <label class="switch">
+        <input type="checkbox" id="tgEnabled" checked>
+        <span class="slider round"></span>
+      </label>
+    </div>
+
+    <!-- Bot Token -->
+    <div class="form-group">
+      <label for="tgBotToken">Telegram Bot Token: <span class="required">*</span></label>
+      <input type="password" id="tgBotToken" class="form-control" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
+      <small>@BotFather থেকে প্রাপ্ত সিক্রেট টোকেন (কখনো পাবলিক করবেন না)</small>
+    </div>
+
+    <!-- Channel ID -->
+    <div class="form-group">
+      <label for="tgChannelId">Storage Channel ID: <span class="required">*</span></label>
+      <input type="text" id="tgChannelId" class="form-control" placeholder="-1001234567890">
+      <small>প্রাইভেট চ্যানেলের আইডি (সাধারণত -100 দিয়ে শুরু হয়)</small>
+    </div>
+
+    <!-- Media API Base URL -->
+    <div class="form-group">
+      <label for="tgApiUrl">Media API Base URL:</label>
+      <input type="text" id="tgApiUrl" class="form-control" value="https://your-api-domain.com">
+      <small>আপনার ব্যাকএন্ড সার্ভারের URL</small>
+    </div>
+
+    <!-- Media Delivery URL -->
+    <div class="form-group">
+      <label for="tgDeliveryUrl">Media Delivery URL:</label>
+      <input type="text" id="tgDeliveryUrl" class="form-control" value="https://your-api-domain.com/media" readonly>
+    </div>
+
+    <!-- Maximum File Size -->
+    <div class="form-group">
+      <label for="tgMaxSize">Maximum File Size (MB):</label>
+      <input type="number" id="tgMaxSize" class="form-control" value="50" min="1" max="2000">
+    </div>
+
+    <!-- Allowed Media Types -->
+    <div class="form-group">
+      <label>অনুমোদিত ফাইল টাইপ:</label>
+      <div class="checkbox-row">
+        <label><input type="checkbox" id="allowImg" checked> Images</label>
+        <label><input type="checkbox" id="allowVid" checked> Videos</label>
+        <label><input type="checkbox" id="allowAud" checked> Audio</label>
+        <label><input type="checkbox" id="allowDoc" checked> Documents (PDF/Zip)</label>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button type="button" class="btn btn-save" onclick="saveTelegramSettings()">💾 Save Settings</button>
+      <button type="button" class="btn btn-test" onclick="testTelegramConnection()">🔍 Test Connection</button>
+      <button type="button" class="btn btn-upload" onclick="document.getElementById('adminTestFile').click()">📤 Test Upload</button>
+      <input type="file" id="adminTestFile" style="display: none;" onchange="executeTestUpload(event)">
+    </div>
+
+    <!-- Status & Alerts Output Box -->
+    <div id="statusAlertBox" class="status-box" style="display: none;"></div>
+  </div>
+</div>
+            </div>
+
+            <!-- Payment Settings Section -->
+            <div id="payment-settings" class="section">
+                <h3 style="margin-bottom: 20px;">Payment Settings (Paid Verification)</h3>
+                <div class="glass" style="padding: 30px; border-radius: 20px; max-width: 800px; background: rgba(0,0,0,0.2);">
+                    
+                    <div class="form-group" style="max-width: 50%;">
+                        <label><i class="fas fa-coins" style="color: var(--warning);"></i> Verification Fee Amount</label>
+                        <input type="text" id="pay-fee" placeholder="e.g. 500 BDT">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
+                        <!-- bKash -->
+                        <div class="glass" style="padding: 20px; border-radius: 15px; background: rgba(255, 255, 255, 0.05);">
+                            <h4 style="margin-bottom: 15px; color: #e11471;"><i class="fas fa-mobile-alt"></i> bKash Details</h4>
+                            <div class="form-group">
+                                <label>bKash Number</label>
+                                <input type="text" id="pay-bkash-num" placeholder="Enter bKash Number">
+                            </div>
+                            <div class="form-group">
+                                <label>bKash QR Code URL</label>
+                                <input type="text" id="pay-bkash-qr" placeholder="Image URL">
+                            </div>
+                        </div>
+
+                        <!-- Nagad -->
+                        <div class="glass" style="padding: 20px; border-radius: 15px; background: rgba(255, 255, 255, 0.05);">
+                            <h4 style="margin-bottom: 15px; color: #f26622;"><i class="fas fa-mobile-alt"></i> Nagad Details</h4>
+                            <div class="form-group">
+                                <label>Nagad Number</label>
+                                <input type="text" id="pay-nagad-num" placeholder="Enter Nagad Number">
+                            </div>
+                            <div class="form-group">
+                                <label>Nagad QR Code URL</label>
+                                <input type="text" id="pay-nagad-qr" placeholder="Image URL">
+                            </div>
+                        </div>
+
+                        <!-- Rocket -->
+                        <div class="glass" style="padding: 20px; border-radius: 15px; background: rgba(255, 255, 255, 0.05);">
+                            <h4 style="margin-bottom: 15px; color: #8c1569;"><i class="fas fa-mobile-alt"></i> Rocket Details</h4>
+                            <div class="form-group">
+                                <label>Rocket Number</label>
+                                <input type="text" id="pay-rocket-num" placeholder="Enter Rocket Number">
+                            </div>
+                            <div class="form-group">
+                                <label>Rocket QR Code URL</label>
+                                <input type="text" id="pay-rocket-qr" placeholder="Image URL">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px;">
+                        <button class="btn" id="btn-save-payment" onclick="savePaymentSettings()">Save Settings <i class="fas fa-save" style="margin-left:5px;"></i></button>
+                    </div>
+                </div>
+            </div>
+             <!-- Monetization Applications Section -->
+            <div id="monetization-apps" class="section">
+                <h3 style="margin-bottom: 20px;">Creator Monetization Applications</h3>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User Info</th>
+                                <th>Earnings & Stats</th>
+                                <th>Applied Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monetization-tbody">
+                            <tr><td colspan="5" style="text-align:center;">Loading applications...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Withdraw Requests Section -->
+            <div id="withdrawals" class="section">
+                <h3 style="margin-bottom: 20px;">Withdraw (Cashout) Requests</h3>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User Info</th>
+                                <th>Amount</th>
+                                <th>Payment Method & Number</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="withdrawals-tbody">
+                            <tr><td colspan="6" style="text-align:center;">Loading withdraw requests...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Reports Section -->
+            <div id="reports" class="section">
+                <h3 style="margin-bottom: 20px;">Reports Viewer</h3>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Reporter</th>
+                                <th>Reported User</th>
+                                <th>Reason</th>
+                                <th>Date</th>
+                                <th>Action</th> <!-- Added Action Column -->
+                            </tr>
+                        </thead>
+                        <tbody id="reports-tbody">
+                            <tr><td colspan="5" style="text-align:center;">Loading reports...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+<!-- Post Reports Section -->
+            <div id="post-reports" class="section">
+                <h3 style="margin-bottom: 20px;">Reported Posts Management</h3>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Post Details</th>
+                                <th>Owner Info</th>
+                                <th style="text-align: center;">Total Reports</th>
+                                <th>Reasons & Reporters</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="post-reports-tbody">
+                            <tr><td colspan="5" style="text-align:center;">Loading post reports...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Support Section -->
+            <div id="support" class="section">
+                <h3 style="margin-bottom: 20px;">Support Inbox (Contact Us)</h3>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>From (Name & Email)</th>
+                                <th>Subject</th>
+                                <th>Message</th>
+                                <th>Date</th>
+                                <th>Action</th> <!-- Added Action Column -->
+                            </tr>
+                        </thead>
+                        <tbody id="support-tbody">
+                            <tr><td colspan="5" style="text-align:center;">Loading messages...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div id="notifications" class="section">
+                <h3 style="margin-bottom: 20px;">Broadcast & Targeted Notifications</h3>
+                
+                <div class="glass" style="padding: 30px; border-radius: 20px; max-width: 600px; background: rgba(0,0,0,0.2); margin-bottom: 20px;">
+                    <input type="hidden" id="edit-notif-id" value="">
+                    
+                    <div class="form-group">
+                        <label>Notification Target</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="notif-type" id="radio-all" value="all" checked onchange="toggleUserSelect()"> All Users (Broadcast)</label>
+                            <label><input type="radio" name="notif-type" id="radio-specific" value="specific" onchange="toggleUserSelect()"> Specific User</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="user-select-group" style="display: none;">
+                        <label>Select User</label>
+                        <select id="notif-user-select">
+                            <option value="">-- Choose User --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notification Message</label>
+                        <textarea id="notif-message" rows="4" placeholder="Type your announcement or alert here..."></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn" id="btn-send-notif" onclick="sendNotification()">Send Notification <i class="fas fa-paper-plane" style="margin-left:5px;"></i></button>
+                        <button class="btn" id="btn-add-queue" onclick="addToQueue()" style="background: var(--info); color: white;">Add to Queue <i class="fas fa-list" style="margin-left:5px;"></i></button>
+                        <button class="btn btn-danger hidden" id="btn-cancel-edit" onclick="cancelEditNotification()">Cancel Edit <i class="fas fa-times" style="margin-left:5px;"></i></button>
+                    </div>
+                </div>
+
+                <div id="queue-container" class="glass hidden" style="padding: 20px; border-radius: 20px; max-width: 600px; background: rgba(0,0,0,0.2); margin-bottom: 40px;">
+                    <h4 style="margin-bottom: 15px;">Pending Notifications (Queue)</h4>
+                    <ul id="queue-list" style="list-style: none; padding: 0; margin-bottom: 15px;"></ul>
+                    <button class="btn" id="btn-send-queue" onclick="sendAllPending()" style="background: var(--success); color: white; width: 100%;">Send All Pending <i class="fas fa-paper-plane" style="margin-left:5px;"></i></button>
+                </div>
+
+                <h3 style="margin-bottom: 20px;">Sent Notifications</h3>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Message</th>
+                                <th>Target</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sent-notif-tbody">
+                            <tr><td colspan="4" style="text-align:center;">Loading notifications...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE & LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        import { getDatabase, ref, onValue, get, push, update, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+      apiKey: "AIzaSyCjZV3yPpdVQ151o7tWcZFNARDnZQsKSVA",
+      authDomain: "sm-chats-2026.firebaseapp.com",
+      databaseURL: "https://sm-chats-2026-default-rtdb.firebaseio.com",
+      projectId: "sm-chats-2026",
+      storageBucket: "sm-chats-2026.firebasestorage.app",
+      messagingSenderId: "720348747831",
+      appId: "1:720348747831:web:a2afa8352744bfb43e47b2"
+    };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let usersData = {}; 
+        let currentAdmin = null;
+        
+        window.notificationQueue =[]; 
+
+        window.showToast = (message, type = 'success') => {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? '<i class="fas fa-check-circle"></i>' : 
+                         type === 'warning' ? '<i class="fas fa-exclamation-triangle"></i>' : 
+                         '<i class="fas fa-exclamation-circle"></i>';
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        document.getElementById('btn-admin-login').onclick = async () => {
+            const email = document.getElementById('admin-email').value;
+            const pass = document.getElementById('admin-pass').value;
+            const errorMsg = document.getElementById('login-error');
+            const btn = document.getElementById('btn-admin-login');
+            
+            if(!email || !pass) return;
+            
+            btn.innerText = "Logging in...";
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                errorMsg.style.display = 'none';
+                showToast("Logged in successfully", "success");
+            } catch(e) {
+                errorMsg.innerText = e.message;
+                errorMsg.style.display = 'block';
+                btn.innerText = "Login to Dashboard";
+            }
+        };
+
+        document.getElementById('btn-admin-logout').onclick = () => {
+            signOut(auth);
+            showToast("Logged out successfully", "success");
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentAdmin = user;
+                document.getElementById('admin-login-screen').classList.add('hidden');
+                document.getElementById('main-admin-app').classList.remove('hidden');
+                document.getElementById('admin-display-email').innerText = user.email;
+                loadAdminData(); 
+            } else {
+                document.getElementById('admin-login-screen').classList.remove('hidden');
+                document.getElementById('main-admin-app').classList.add('hidden');
+                document.getElementById('btn-admin-login').innerText = "Login to Dashboard";
+            }
+        });
+
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        };
+
+        window.toggleUserSelect = () => {
+            const type = document.querySelector('input[name="notif-type"]:checked').value;
+            document.getElementById('user-select-group').style.display = type === 'specific' ? 'block' : 'none';
+        };
+
+        const formatDate = (ts) => {
+            if(!ts) return 'N/A';
+            return new Date(ts).toLocaleString();
+        };
+const isVideoURL = (url) => {
+            if(!url) return false;
+            return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url) || url.includes('.mp4');
+        };
+        // Global Delete Function
+        window.deleteDataRecord = async (path, itemType) => {
+            if(confirm(`Are you sure you want to permanently delete this ${itemType}? This action cannot be undone.`)) {
+                try {
+                    await remove(ref(db, path));
+                    showToast(`${itemType} deleted successfully!`, "success");
+                    
+                    // Search tab active থাকলে result clear করে দিবে
+                    const searchSection = document.getElementById('advanced-search');
+                    if (searchSection && searchSection.classList.contains('active')) {
+                        document.getElementById('search-results-container').innerHTML = '<div style="padding: 20px; text-align: center; color: var(--success);"><i class="fas fa-check-circle fa-2x"></i><br>Deleted Successfully.</div>';
+                    }
+                } catch(error) {
+                    console.error("Error deleting:", error);
+                    showToast(`Failed to delete ${itemType}.`, "error");
+                }
+            }
+        };
+
+        // Global Verification Handling Function
+        window.handleVerificationRequest = async (reqKey, uid, action) => {
+            let updates = { status: action };
+            
+            if (action === 'rejected') {
+                const reason = prompt("Optional: Enter a reason for rejection (or leave blank):");
+                if (reason === null) return; 
+                if (reason.trim() !== "") updates.reason = reason;
+            } else {
+                if (!confirm("Are you sure you want to Approve this verification request?")) return;
+            }
+
+            try {
+                await update(ref(db, `verification_requests/${reqKey}`), updates);
+                
+                if (action === 'approved') {
+                    await update(ref(db, `users/${uid}`), { isVerified: true });
+                }
+                
+                showToast(`Request ${action} successfully!`, "success");
+            } catch (error) {
+                console.error("Error updating request:", error);
+                showToast("Failed to update verification request.", "error");
+            }
+        };
+
+        window.toggleUserStatus = async (uid, currentStatus) => {
+            const newStatus = (currentStatus === 'blocked') ? 'active' : 'blocked';
+            const actionText = newStatus === 'blocked' ? 'SUSPEND / BLOCK' : 'UNSUSPEND / UNBLOCK';
+
+            // Popup Confirmation
+            if (confirm(`Are you sure you want to ${actionText} this user account?`)) {
+                try {
+                    await update(ref(db, `users/${uid}`), { status: newStatus });
+                    showToast(`User successfully ${newStatus === 'blocked' ? 'suspended' : 'unsuspended'}!`, "success");
+                    
+                    // Search tab active থাকলে UI সাথে সাথে আপডেট করবে
+                    const searchSection = document.getElementById('advanced-search');
+                    if (searchSection && searchSection.classList.contains('active') && document.getElementById('global-search-input')) {
+                        window.performAdvancedSearch(); // Refresh search result
+                    }
+                } catch (error) {
+                    console.error("Error updating status:", error);
+                    showToast("Failed to update user status.", "error");
+                }
+            }
+        };
+
+        window.toggleVerification = async (uid, isVerified) => {
+            const newStatus = !isVerified;
+            const actionText = newStatus ? 'ADD Blue Tick to' : 'REMOVE Blue Tick from';
+
+            // Popup Confirmation
+            if (confirm(`Are you sure you want to ${actionText} this user?`)) {
+                try {
+                    await update(ref(db, `users/${uid}`), { isVerified: newStatus });
+                    showToast(`Blue tick successfully ${newStatus ? 'added' : 'removed'}!`, "success");
+                    
+                    // Search tab active থাকলে UI সাথে সাথে আপডেট করবে
+                    const searchSection = document.getElementById('advanced-search');
+                    if (searchSection && searchSection.classList.contains('active') && document.getElementById('global-search-input')) {
+                        window.performAdvancedSearch(); // Refresh search result
+                    }
+                } catch (error) {
+                    console.error("Error updating verification:", error);
+                    showToast("Failed to update user verification.", "error");
+                }
+            }
+        };
+
+        // Save Payment Settings Logic
+        window.savePaymentSettings = async () => {
+            const btn = document.getElementById('btn-save-payment');
+            btn.innerHTML = 'Saving Settings... <i class="fas fa-spinner fa-spin" style="margin-left:5px;"></i>';
+            btn.disabled = true;
+
+            const paymentData = {
+                fee: document.getElementById('pay-fee').value.trim(),
+                bkashNum: document.getElementById('pay-bkash-num').value.trim(),
+                bkashQr: document.getElementById('pay-bkash-qr').value.trim(),
+                nagadNum: document.getElementById('pay-nagad-num').value.trim(),
+                nagadQr: document.getElementById('pay-nagad-qr').value.trim(),
+                rocketNum: document.getElementById('pay-rocket-num').value.trim(),
+                rocketQr: document.getElementById('pay-rocket-qr').value.trim(),
+            };
+
+            try {
+                await update(ref(db, 'settings/payment'), paymentData);
+                showToast("Payment Settings Saved Successfully!", "success");
+            } catch(error) {
+                console.error("Error saving payment settings:", error);
+                showToast("Failed to save payment settings.", "error");
+            } finally {
+                btn.innerHTML = 'Save Settings <i class="fas fa-save" style="margin-left:5px;"></i>';
+                btn.disabled = false;
+            }
+        };
+
+        // Save API Settings Logic (NEW)
+        window.saveApiSettings = async () => {
+            const btn = document.getElementById('btn-save-api');
+            btn.innerHTML = 'Saving Settings... <i class="fas fa-spinner fa-spin" style="margin-left:5px;"></i>';
+            btn.disabled = true;
+
+            const apiKey = document.getElementById('api-imgbb').value.trim();
+
+            try {
+                await update(ref(db, 'settings/api'), { imgbbKey: apiKey });
+                showToast("API Settings Saved Successfully!", "success");
+            } catch(error) {
+                console.error("Error saving API settings:", error);
+                showToast("Failed to save API settings.", "error");
+            } finally {
+                btn.innerHTML = 'Save Settings <i class="fas fa-save" style="margin-left:5px;"></i>';
+                btn.disabled = false;
+            }
+        };
+
+        function loadAdminData() {
+            // Users Load
+            onValue(ref(db, 'users'), (snap) => {
+                const tbody = document.getElementById('users-tbody');
+                const select = document.getElementById('notif-user-select');
+                const previousSelection = select.value;
+
+                tbody.innerHTML = '';
+                let selectHtml = '<option value="">-- Choose User --</option>';
+                let count = 0;
+
+                if (snap.exists()) {
+                    snap.forEach(child => {
+                        const user = child.val();
+                        const uid = child.key;
+                        usersData[uid] = user; 
+                        count++;
+                        
+                        const status = user.status || 'active';
+                        let blockBtn = '';
+                        if (status === 'blocked') {
+                            blockBtn = `<button class="btn-sm btn-success" onclick="toggleUserStatus('${uid}', 'blocked')"><i class="fas fa-unlock"></i> Unblock</button>`;
+                        } else {
+                            blockBtn = `<button class="btn-sm btn-danger" onclick="toggleUserStatus('${uid}', 'active')"><i class="fas fa-ban"></i> Block</button>`;
+                        }
+
+                        const isVerified = user.isVerified === true;
+                        let verifyBtn = '';
+                        if (isVerified) {
+                            verifyBtn = `<button class="btn-sm btn-warning" onclick="toggleVerification('${uid}', true)"><i class="fas fa-times-circle"></i> Unverify</button>`;
+                        } else {
+                            verifyBtn = `<button class="btn-sm btn-info" onclick="toggleVerification('${uid}', false)"><i class="fas fa-check-circle"></i> Verify</button>`;
+                        }
+
+                        const verifiedIcon = isVerified ? `<i class="fas fa-check-circle" style="color: var(--info); margin-left: 5px; font-size: 14px;" title="Verified"></i>` : '';
+                        const actionButtons = `<div style="display: flex; gap: 8px;">${blockBtn} ${verifyBtn}</div>`;
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><img src="${user.dpUrl || 'https://via.placeholder.com/40'}" class="user-dp"></td>
+                                <td>${user.name || 'Unnamed'} ${verifiedIcon}</td>
+                                <td><strong style="color:#00e5ff">${user.userId || 'N/A'}</strong></td>
+                                <td>${user.email || 'No Email'}</td>
+                                <td>${actionButtons}</td>
+                            </tr>
+                        `;
+                        selectHtml += `<option value="${uid}">${user.name} (${user.userId})</option>`;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No users found.</td></tr>';
+                }
+                document.getElementById('total-users').innerText = count;
+                select.innerHTML = selectHtml;
+
+                if (previousSelection) { select.value = previousSelection; }
+                if(window.notificationQueue.length > 0) window.renderQueue();
+            });
+         // Sponsored Ads Load
+            onValue(ref(db, 'sponsoredPosts'), (snap) => {
+                const tbody = document.getElementById('ads-tbody');
+                tbody.innerHTML = '';
+                if(snap.exists()) {
+                    const ads = [];
+                    snap.forEach(c => ads.push({ key: c.key, ...c.val() }));
+                    
+                    ads.reverse().forEach(ad => {
+                        const owner = usersData[ad.uid] || { name: 'Unknown' };
+                        let ctr = ad.impressions > 0 ? ((ad.clicks / ad.impressions) * 100).toFixed(2) : 0;
+                        
+                        let statusColor = ad.status === 'approved' ? 'var(--success)' : (ad.status === 'rejected' || ad.status === 'expired' ? 'var(--danger)' : 'var(--warning)');
+                        
+                        let actionBtns = '';
+                        if(ad.status === 'pending') {
+                            actionBtns = `
+                                <button class="btn-sm btn-success" onclick="updateAdStatus('${ad.key}', 'approved', ${ad.durationDays})"><i class="fas fa-check"></i> Approve</button>
+                                <button class="btn-sm btn-danger" onclick="updateAdStatus('${ad.key}', 'rejected')"><i class="fas fa-times"></i> Reject</button>
+                            `;
+                        } else {
+                            actionBtns = `<button class="btn-sm btn-warning" onclick="updateAdStatus('${ad.key}', 'paused')"><i class="fas fa-pause"></i> Pause/Hide</button>
+                                          <button class="btn-sm btn-danger" onclick="deleteDataRecord('sponsoredPosts/${ad.key}', 'Ad')"><i class="fas fa-trash"></i> Delete</button>`;
+                        }
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>
+                                    <div style="font-size:0.85rem; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ad.text}</div>
+                                    ${ad.img ? `<a href="${ad.img.split(',')[0]}" target="_blank" style="color:#00e5ff; font-size:0.8rem;">View Media</a>` : ''}
+                                    <br><a href="${ad.link}" target="_blank" style="color:var(--info); font-size:0.8rem;">${ad.ctaText}</a>
+                                </td>
+                                <td>${owner.name}<br><small style="color:#ccc">${ad.uid}</small></td>
+                                <td>৳${ad.budget} <br><small>${ad.durationDays} Days | Target: ${ad.targetAudience}</small></td>
+                                <td><i class="fas fa-eye"></i> ${ad.impressions || 0} <br><i class="fas fa-mouse-pointer"></i> ${ad.clicks || 0} <br><small>CTR: ${ctr}%</small></td>
+                                <td><strong style="color:${statusColor}; text-transform:uppercase;">${ad.status}</strong></td>
+                                <td style="display:flex; flex-direction:column; gap:5px;">${actionBtns}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No Sponsored Ads Found.</td></tr>';
+                }
+            });
+
+            // Global update Ad function
+            window.updateAdStatus = async (adId, newStatus, durationDays = 0) => {
+                if(confirm(`Are you sure you want to mark this ad as ${newStatus}?`)) {
+                    let updates = { status: newStatus };
+                    // Set Expiration if approved
+                    if(newStatus === 'approved' && durationDays > 0) {
+                        updates.expireAt = Date.now() + (durationDays * 24 * 60 * 60 * 1000);
+                    }
+                    await update(ref(db, `sponsoredPosts/${adId}`), updates);
+                    showToast(`Ad marked as ${newStatus}`, "success");
+                }
+            };
+            // Verifications Load (MODIFIED)
+            onValue(ref(db, 'verification_requests'), (snap) => {
+                const tbody = document.getElementById('verifications-tbody');
+                tbody.innerHTML = '';
+                
+                if (snap.exists()) {
+                    const requests =[];
+                    snap.forEach(c => requests.push({ key: c.key, ...c.val() }));
+                    
+                    requests.reverse().forEach(req => {
+                        const userName = usersData[req.uid]?.name || req.uid;
+                        const docHtml = req.documentUrl 
+                            ? `<a href="${req.documentUrl}" target="_blank" style="color:#00e5ff; text-decoration:none;"><i class="fas fa-link"></i> View Doc</a>` 
+                            : 'No Doc';
+
+                        // New Submitted Details Data
+                        const submittedDetails = `
+                            <div style="font-size:0.85rem;"><i class="fas fa-user"></i> ${req.name || 'N/A'}</div>
+                            <div style="font-size:0.85rem;"><i class="fas fa-envelope"></i> ${req.email || 'N/A'}</div>
+                            <div style="font-size:0.85rem;"><i class="fas fa-phone"></i> ${req.phone || 'N/A'}</div>
+                        `;
+
+                        // New Payment / TrxID Data
+                        const paymentInfo = `
+                            <div style="font-size:0.85rem; color:var(--warning);"><i class="fas fa-money-bill"></i> ${req.paymentMethod ? req.paymentMethod.toUpperCase() : 'N/A'} (৳${req.amount || 0})</div>
+                            <div style="font-size:0.85rem;"><i class="fas fa-paper-plane"></i> Sender: ${req.senderNumber || 'N/A'}</div>
+                            <div style="font-size:0.85rem;"><i class="fas fa-hashtag"></i> TrxID: <strong>${req.trxId || 'N/A'}</strong></div>
+                        `;
+                        
+                        let statusColor = 'var(--warning)';
+                        if(req.status === 'approved') statusColor = 'var(--success)';
+                        if(req.status === 'rejected') statusColor = 'var(--danger)';
+
+                        let actionBtns = '';
+                        if (req.status === 'pending') {
+                            actionBtns = `
+                                <button class="btn-sm btn-success" title="Approve" onclick="handleVerificationRequest('${req.key}', '${req.uid}', 'approved')"><i class="fas fa-check"></i> Approve</button>
+                                <button class="btn-sm btn-danger" title="Reject" onclick="handleVerificationRequest('${req.key}', '${req.uid}', 'rejected')"><i class="fas fa-times"></i> Reject</button>
+                            `;
+                        } else {
+                            actionBtns = `<button class="btn-sm btn-danger" onclick="deleteDataRecord('verification_requests/${req.key}', 'Verification Request')"><i class="fas fa-trash"></i> Delete Record</button>`;
+                        }
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><strong>${userName}</strong></td>
+                                <td>${submittedDetails}</td>
+                                <td>${paymentInfo}</td>
+                                <td>${docHtml}</td>
+                                <td><small>${formatDate(req.timestamp)}</small></td>
+                                <td><strong style="color:${statusColor}; text-transform:capitalize;">${req.status || 'Pending'}</strong></td>
+                                <td style="display:flex; gap:8px;">${actionBtns}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No verification requests pending.</td></tr>';
+                }
+            });
+
+            // API Settings Load (NEW)
+            onValue(ref(db, 'settings/api'), (snap) => {
+                if (snap.exists()) {
+                    const data = snap.val();
+                    document.getElementById('api-imgbb').value = data.imgbbKey || '';
+                }
+            });
+
+            // Payment Settings Fetch Load
+            onValue(ref(db, 'settings/payment'), (snap) => {
+                if (snap.exists()) {
+                    const data = snap.val();
+                    document.getElementById('pay-fee').value = data.fee || '';
+                    document.getElementById('pay-bkash-num').value = data.bkashNum || '';
+                    document.getElementById('pay-bkash-qr').value = data.bkashQr || '';
+                    document.getElementById('pay-nagad-num').value = data.nagadNum || '';
+                    document.getElementById('pay-nagad-qr').value = data.nagadQr || '';
+                    document.getElementById('pay-rocket-num').value = data.rocketNum || '';
+                    document.getElementById('pay-rocket-qr').value = data.rocketQr || '';
+                }
+            });
+// ==========================================
+            // MONETIZATION APPLICATIONS LOAD
+            // ==========================================
+            onValue(ref(db, 'monetization'), (snap) => {
+                const tbody = document.getElementById('monetization-tbody');
+                tbody.innerHTML = '';
+                
+                if (snap.exists()) {
+                    const apps = [];
+                    snap.forEach(c => apps.push({ uid: c.key, ...c.val() }));
+                    
+                    apps.reverse().forEach(app => {
+                        const user = usersData[app.uid] || { name: 'Unknown', email: '' };
+                        
+                        let statusColor = app.status === 'approved' ? 'var(--success)' : (app.status === 'rejected' ? 'var(--danger)' : 'var(--warning)');
+                        
+                        let statsHtml = `
+                            <div style="font-size:0.85rem;"><i class="fas fa-wallet" style="color:var(--success)"></i> Bal: ৳${parseFloat(app.balance || 0).toFixed(2)}</div>
+                            <div style="font-size:0.85rem;"><i class="fas fa-chart-line" style="color:var(--info)"></i> RPM: ৳${app.rpm || 5}</div>
+                            <div style="font-size:0.85rem;"><i class="fas fa-eye" style="color:var(--warning)"></i> Monetized Views: ${app.monetizedViews || 0}</div>
+                        `;
+
+                        let actionBtns = '';
+                        if (app.status === 'pending') {
+                            actionBtns = `
+                                <button class="btn-sm btn-success" onclick="handleMonetization('${app.uid}', 'approved')"><i class="fas fa-check"></i> Approve</button>
+                                <button class="btn-sm btn-danger" onclick="handleMonetization('${app.uid}', 'rejected')"><i class="fas fa-times"></i> Reject</button>
+                            `;
+                        } else if (app.status === 'approved') {
+                            actionBtns = `
+                                <button class="btn-sm btn-info" onclick="setCreatorRPM('${app.uid}', ${app.rpm || 5})"><i class="fas fa-cog"></i> Set RPM</button>
+                                <button class="btn-sm btn-danger" onclick="handleMonetization('${app.uid}', 'rejected')"><i class="fas fa-ban"></i> Ban Monetization</button>
+                            `;
+                        } else {
+                            actionBtns = `
+                                <button class="btn-sm btn-success" onclick="handleMonetization('${app.uid}', 'approved')"><i class="fas fa-check"></i> Re-Approve</button>
+                                <button class="btn-sm btn-danger" onclick="deleteDataRecord('monetization/${app.uid}', 'Application')"><i class="fas fa-trash"></i> Delete</button>
+                            `;
+                        }
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>
+                                    <strong>${user.name}</strong><br>
+                                    <small style="color:#ccc">${user.email}</small><br>
+                                    <small style="color:#00e5ff">UID: ${app.uid}</small>
+                                </td>
+                                <td>${statsHtml}</td>
+                                <td><small>${formatDate(app.appliedAt)}</small></td>
+                                <td><strong style="color:${statusColor}; text-transform:uppercase;">${app.status}</strong></td>
+                                <td style="display:flex; flex-direction:column; gap:5px;">${actionBtns}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No applications found.</td></tr>';
+                }
+            });
+
+            // ==========================================
+            // WITHDRAW REQUESTS LOAD
+            // ==========================================
+            onValue(ref(db, 'withdrawals'), (snap) => {
+                const tbody = document.getElementById('withdrawals-tbody');
+                tbody.innerHTML = '';
+                
+                if (snap.exists()) {
+                    let allRequests = [];
+                    snap.forEach(userNode => {
+                        const uid = userNode.key;
+                        userNode.forEach(reqNode => {
+                            allRequests.push({ key: reqNode.key, uid: uid, ...reqNode.val() });
+                        });
+                    });
+                    
+                    // Sort by timestamp (newest first)
+                    allRequests.sort((a, b) => b.ts - a.ts);
+                    
+                    allRequests.forEach(req => {
+                        const user = usersData[req.uid] || { name: 'Unknown', email: '' };
+                        
+                        let statusColor = req.status === 'completed' ? 'var(--success)' : (req.status === 'rejected' ? 'var(--danger)' : 'var(--warning)');
+                        
+                        let methodIcon = req.method === 'bkash' ? '<i class="fas fa-mobile-alt" style="color:#e11471"></i> bKash' : 
+                                         (req.method === 'nagad' ? '<i class="fas fa-mobile-alt" style="color:#f26622"></i> Nagad' : 
+                                         '<i class="fas fa-mobile-alt" style="color:#8c1569"></i> Rocket');
+
+                        let actionBtns = '';
+                        if (req.status === 'pending') {
+                            actionBtns = `
+                                <button class="btn-sm btn-success" onclick="handleWithdrawRequest('${req.uid}', '${req.key}', ${req.amount}, 'completed')"><i class="fas fa-check"></i> Paid/Complete</button>
+                                <button class="btn-sm btn-danger" onclick="handleWithdrawRequest('${req.uid}', '${req.key}', ${req.amount}, 'rejected')"><i class="fas fa-times"></i> Reject (Refund)</button>
+                            `;
+                        } else {
+                            actionBtns = `<button class="btn-sm btn-danger" onclick="deleteDataRecord('withdrawals/${req.uid}/${req.key}', 'Record')"><i class="fas fa-trash"></i> Delete Record</button>`;
+                        }
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>
+                                    <strong>${user.name}</strong><br>
+                                    <small style="color:#00e5ff">UID: ${req.uid}</small>
+                                </td>
+                                <td><strong style="color:var(--success); font-size:1.1rem;">৳${parseFloat(req.amount).toFixed(2)}</strong></td>
+                                <td>
+                                    <strong>${methodIcon}</strong><br>
+                                    <span style="font-size:1.1rem; letter-spacing:1px;">${req.number}</span>
+                                </td>
+                                <td><small>${formatDate(req.ts)}</small></td>
+                                <td><strong style="color:${statusColor}; text-transform:uppercase;">${req.status}</strong></td>
+                                <td style="display:flex; flex-direction:column; gap:5px;">${actionBtns}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No withdraw requests found.</td></tr>';
+                }
+            });
+// // =====================================
+            // Reports Load (Safe & Updated)
+            // =====================================
+            window.isVideoURL = (url) => {
+                if(!url) return false;
+                return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url) || url.includes('.mp4');
+            };
+
+            onValue(ref(db, 'admin/reports'), async (snap) => {
+                try {
+                    const userReportsTbody = document.getElementById('reports-tbody');
+                    const postReportsTbody = document.getElementById('post-reports-tbody');
+                    
+                    // HTML না থাকলে যাতে এরর না দেয়
+                    if(!userReportsTbody || !postReportsTbody) return;
+
+                    userReportsTbody.innerHTML = '';
+                    postReportsTbody.innerHTML = '';
+                    
+                    let userReportCount = 0;
+                    let postReportsMap = {};
+
+                    if (snap.exists()) {
+                        snap.forEach(c => {
+                            const report = { key: c.key, ...c.val() };
+                            
+                            if (report.postId) {
+                                // Post Reports Grouping
+                                if (!postReportsMap[report.postId]) {
+                                    postReportsMap[report.postId] = { postId: report.postId, keys: [], reporters: [], reasons: [] };
+                                }
+                                postReportsMap[report.postId].keys.push(report.key);
+                                postReportsMap[report.postId].reporters.push(report.reporterUid);
+                                postReportsMap[report.postId].reasons.push(report.reason);
+                            } else {
+                                // User Profile Reports
+                                userReportCount++;
+                                const reporterName = usersData[report.reporterUid]?.name || report.reporterUid;
+                                const reportedName = usersData[report.reportedUid]?.name || report.reportedUid;
+                                
+                                userReportsTbody.innerHTML += `
+                                    <tr>
+                                        <td><span style="color:#2ed573">${reporterName}</span></td>
+                                        <td><span style="color:#ff4757">${reportedName}</span></td>
+                                        <td>${report.reason}</td>
+                                        <td><small>${formatDate(report.timestamp)}</small></td>
+                                        <td><button class="btn-sm btn-danger" onclick="deleteDataRecord('admin/reports/${report.key}', 'Report')"><i class="fas fa-trash"></i> Delete</button></td>
+                                    </tr>
+                                `;
+                            }
+                        });
+
+                        // Render Post Reports
+                        const postIds = Object.keys(postReportsMap);
+                        if (postIds.length === 0) {
+                            postReportsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No post reports yet.</td></tr>';
+                        } else {
+                            for (let postId of postIds) {
+                                const data = postReportsMap[postId];
+                                const reportCount = data.keys.length;
+                                
+                                const reasonCounts = {};
+                                data.reasons.forEach(r => reasonCounts[r] = (reasonCounts[r] || 0) + 1);
+                                const reasonsHtml = Object.entries(reasonCounts).map(([r, c]) => `<div style="margin-bottom:3px;">- ${r} <b>(${c})</b></div>`).join('');
+                                
+                                const postSnap = await get(ref(db, `posts/${postId}`));
+                                
+                                if (!postSnap.exists()) {
+                                    postReportsTbody.innerHTML += `
+                                        <tr>
+                                            <td><span style="color:var(--danger); font-weight:bold;">[Post Deleted]</span><br><small>ID: ${postId}</small></td>
+                                            <td>-</td>
+                                            <td style="text-align:center;"><strong style="color:var(--danger); font-size:1.2rem;">${reportCount}</strong></td>
+                                            <td style="font-size:0.85rem;">${reasonsHtml}</td>
+                                            <td><button class="btn-sm btn-danger" onclick="clearPostReports('${postId}')"><i class="fas fa-eraser"></i> Clear Reports</button></td>
+                                        </tr>`;
+                                    continue;
+                                }
+                                
+                                const post = postSnap.val();
+                                const owner = usersData[post.uid] || { name: 'Unknown', email: '' };
+                                const isHidden = post.visibility === 'private';
+
+                                // Caption Setup
+                                const captionHtml = post.text 
+                                    ? `<div style="font-size:0.85rem; line-height:1.4; max-height:60px; overflow-y:auto; margin-bottom:5px; word-wrap:break-word;">${post.text}</div>` 
+                                    : '';
+                                
+                                // Media Setup
+                                let mediaHtml = '';
+                                if (post.img) {
+                                    const firstMedia = post.img.split(',')[0].trim();
+                                    if (window.isVideoURL(firstMedia)) {
+                                        mediaHtml = `<video src="${firstMedia}" style="width:120px; height:80px; object-fit:cover; border-radius:8px; border:1px solid rgba(255,255,255,0.2);" controls playsinline></video>`;
+                                    } else {
+                                        mediaHtml = `<img src="${firstMedia}" style="width:120px; height:80px; object-fit:cover; border-radius:8px; border:1px solid rgba(255,255,255,0.2); cursor:pointer;" onclick="window.open('${firstMedia}', '_blank')">`;
+                                    }
+                                }
+
+                                postReportsTbody.innerHTML += `
+                                    <tr>
+                                        <td style="min-width: 200px; max-width: 300px;">
+                                            ${captionHtml}
+                                            ${mediaHtml}
+                                            <div style="margin-top:5px;"><small style="color:#00e5ff">ID: ${postId}</small></div>
+                                        </td>
+                                  <td>
+                                        <strong>${owner.name}</strong><br>
+                                        <small style="color:#00e5ff">ID: ${owner.userId || 'N/A'}</small><br>
+                                        <small style="color:#ccc">UID: ${post.uid}</small>
+                                    </td>
+                                        <td style="text-align:center;">
+                                            <strong style="color:var(--danger); font-size:1.4rem;">${reportCount}</strong>
+                                        </td>
+                                        <td style="font-size:0.85rem;">${reasonsHtml}</td>
+                                        <td style="display:flex; flex-direction:column; gap:8px;">
+                                            <button class="btn-sm btn-info" onclick="copyPostLinkAdmin('${postId}')"><i class="fas fa-link"></i> Copy Link</button>
+                                            <button class="btn-sm ${isHidden ? 'btn-success' : 'btn-warning'}" onclick="togglePostVisibilityAdmin('${postId}', '${post.visibility}')">
+                                                <i class="fas fa-${isHidden ? 'eye' : 'eye-slash'}"></i> ${isHidden ? 'Unhide Post' : 'Hide Post'}
+                                            </button>
+                                            <button class="btn-sm btn-danger" onclick="deletePostAdmin('${postId}')"><i class="fas fa-trash"></i> Delete Post</button>
+                                            <button class="btn-sm" style="background:#555; color:white;" onclick="clearPostReports('${postId}')"><i class="fas fa-eraser"></i> Clear Reports</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }
+                        }
+                    } else {
+                        userReportsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No user reports yet.</td></tr>';
+                        postReportsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No post reports yet.</td></tr>';
+                    }
+                    
+                    const totalReportsEl = document.getElementById('total-reports');
+                    if(totalReportsEl) {
+                        totalReportsEl.innerText = userReportCount + Object.keys(postReportsMap).length;
+                    }
+                    
+                } catch (error) {
+                    console.error("Error parsing reports:", error);
+                }
+            });
+
+            // Support Load 
+            onValue(ref(db, 'contacts/messages'), (snap) => {
+                const tbody = document.getElementById('support-tbody');
+                tbody.innerHTML = '';
+                let count = 0;
+
+                if (snap.exists()) {
+                    const messages =[];
+                    snap.forEach(c => messages.push({ key: c.key, ...c.val() }));
+                    messages.reverse().forEach(msg => {
+                        count++;
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><strong>${msg.name}</strong><br><small style="color:#ccc">${msg.email}</small></td>
+                                <td>${msg.subject}</td>
+                                <td>${msg.message}</td>
+                                <td><small>${formatDate(msg.timestamp)}</small></td>
+                                <td><button class="btn-sm btn-danger" onclick="deleteDataRecord('contacts/messages/${msg.key}', 'Message')"><i class="fas fa-trash"></i> Delete</button></td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Inbox is empty.</td></tr>';
+                }
+                document.getElementById('total-messages').innerText = count;
+            });
+
+            // Sent Notifications Load
+            onValue(ref(db, 'admin/notifications'), (snap) => {
+                const tbody = document.getElementById('sent-notif-tbody');
+                tbody.innerHTML = '';
+
+                if (snap.exists()) {
+                    const notifs =[];
+                    snap.forEach(child => notifs.push({ key: child.key, ...child.val() }));
+                    
+                    notifs.reverse().forEach(notif => {
+                        const targetText = notif.target === 'all' ? '<span style="color:#00e5ff">Broadcast (All)</span>' : `<span style="color:#2ed573">User: ${usersData[notif.target]?.name || notif.target}</span>`;
+                        const safeMsg = notif.message.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        
+                        tbody.innerHTML += `
+                            <tr>
+                                <td style="max-width: 250px; word-wrap: break-word;">${notif.message}</td>
+                                <td>${targetText}</td>
+                                <td><small>${formatDate(notif.timestamp)}</small></td>
+                                <td style="display:flex; gap:8px;">
+                                    <button class="btn-sm btn-info" onclick="triggerEditNotification('${notif.key}', '${safeMsg}', '${notif.target}')"><i class="fas fa-edit"></i></button>
+                                    <button class="btn-sm btn-danger" onclick="deleteNotification('${notif.key}')"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No notifications sent yet.</td></tr>';
+                }
+            });
+        }
+
+        // --- BATCH/QUEUE SYSTEM LOGIC ---
+        
+        window.addToQueue = () => {
+            if(document.getElementById('edit-notif-id').value) {
+                return showToast("Cannot add edits to queue. Please 'Update' directly or 'Cancel'.", "warning");
+            }
+
+            const type = document.querySelector('input[name="notif-type"]:checked').value;
+            const msg = document.getElementById('notif-message').value.trim();
+            const selectedUser = document.getElementById('notif-user-select').value;
+
+            if(!msg) return showToast("Please type a message!", "error");
+            if(type === 'specific' && !selectedUser) return showToast("Please select a user first.", "error");
+
+            const target = type === 'all' ? 'all' : selectedUser;
+            
+            window.notificationQueue.push({ message: msg, target: target });
+            
+            document.getElementById('notif-message').value = ''; 
+            showToast("Notification added to queue!", "success");
+            
+            window.renderQueue();
+        };
+
+        window.renderQueue = () => {
+            const container = document.getElementById('queue-container');
+            const list = document.getElementById('queue-list');
+            list.innerHTML = '';
+
+            if(window.notificationQueue.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            
+            window.notificationQueue.forEach((item, index) => {
+                const targetText = item.target === 'all' ? '<span style="color:#00e5ff">Broadcast (All)</span>' : `<span style="color:#2ed573">User: ${usersData[item.target]?.name || item.target}</span>`;
+                
+                list.innerHTML += `
+                    <li class="queue-item">
+                        <div style="max-width: 75%;">
+                            <strong>Target:</strong> ${targetText}<br>
+                            <small style="word-wrap: break-word; color: #ddd;">${item.message}</small>
+                        </div>
+                        <button class="btn-sm btn-danger" onclick="removeFromQueue(${index})"><i class="fas fa-trash"></i></button>
+                    </li>
+                `;
+            });
+        };
+
+        window.removeFromQueue = (index) => {
+            window.notificationQueue.splice(index, 1);
+            window.renderQueue();
+        };
+
+        window.sendAllPending = async () => {
+            if(window.notificationQueue.length === 0) return showToast("Queue is empty!", "error");
+
+            const btn = document.getElementById('btn-send-queue');
+            btn.innerHTML = 'Sending Batch... <i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                const promises = window.notificationQueue.map(item => {
+                    const notifData = {
+                        message: item.message,
+                        target: item.target,
+                        timestamp: serverTimestamp()
+                    };
+                    return push(ref(db, 'admin/notifications'), notifData);
+                });
+
+                await Promise.all(promises);
+                
+                window.notificationQueue =[]; 
+                window.renderQueue();
+                showToast("All pending notifications sent successfully!", "success");
+            } catch(error) {
+                console.error(error);
+                showToast("Failed to send batch notifications.", "error");
+            } finally {
+                btn.innerHTML = 'Send All Pending <i class="fas fa-paper-plane" style="margin-left:5px;"></i>';
+                btn.disabled = false;
+            }
+        };
+
+        // --- SINGLE NOTIFICATION LOGIC ---
+        window.sendNotification = async () => {
+            const type = document.querySelector('input[name="notif-type"]:checked').value;
+            const msg = document.getElementById('notif-message').value.trim();
+            const selectedUser = document.getElementById('notif-user-select').value;
+            const editId = document.getElementById('edit-notif-id').value;
+
+            if(!msg) return showToast("Please type a message!", "error");
+            if(type === 'specific' && !selectedUser) return showToast("Please select a user first.", "error");
+
+            const notifData = {
+                message: msg,
+                target: type === 'all' ? 'all' : selectedUser,
+                timestamp: serverTimestamp()
+            };
+
+            try {
+                if (editId) {
+                    await update(ref(db, `admin/notifications/${editId}`), notifData);
+                    showToast("Notification updated successfully!", "success");
+                    cancelEditNotification();
+                } else {
+                    await push(ref(db, 'admin/notifications'), notifData);
+                    showToast("Notification sent successfully!", "success");
+                    document.getElementById('notif-message').value = '';
+                }
+            } catch(e) {
+                console.error(e);
+                showToast("Failed to process notification.", "error");
+            }
+        };
+
+        window.triggerEditNotification = (key, msg, target) => {
+            document.getElementById('notif-message').value = msg;
+            document.getElementById('edit-notif-id').value = key;
+            
+            if (target === 'all') {
+                document.getElementById('radio-all').checked = true;
+            } else {
+                document.getElementById('radio-specific').checked = true;
+                setTimeout(() => {
+                    document.getElementById('notif-user-select').value = target;
+                }, 100);
+            }
+            toggleUserSelect();
+
+            document.getElementById('btn-send-notif').innerHTML = 'Update Notification <i class="fas fa-save" style="margin-left:5px;"></i>';
+            document.getElementById('btn-add-queue').classList.add('hidden'); 
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+            
+            document.getElementById('notifications').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.cancelEditNotification = () => {
+            document.getElementById('edit-notif-id').value = '';
+            document.getElementById('notif-message').value = '';
+            document.getElementById('radio-all').checked = true;
+            toggleUserSelect();
+            
+            document.getElementById('btn-send-notif').innerHTML = 'Send Notification <i class="fas fa-paper-plane" style="margin-left:5px;"></i>';
+            document.getElementById('btn-add-queue').classList.remove('hidden'); 
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+        };
+// ==========================================
+        // POST REPORT MANAGEMENT LOGIC
+        // ==========================================
+
+        // 1. Copy Post Link (Admin Panel to User Panel App Link)
+        window.copyPostLinkAdmin = (postId) => {
+            // ধরে নিচ্ছি আপনার User Panel রুট ডোমেইনে আছে
+            const appUrl = window.location.origin.replace('/admin', ''); 
+            const postLink = appUrl + '/?postId=' + postId;
+            
+            const tempInput = document.createElement("input");
+            document.body.appendChild(tempInput);
+            tempInput.value = postLink;
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            
+            showToast("Post Link Copied!", "success");
+        };
+
+        // 2. Hide / Unhide Post
+        window.togglePostVisibilityAdmin = async (postId, currentVis) => {
+            const newVis = currentVis === 'public' ? 'private' : 'public';
+            const actionText = newVis === 'private' ? 'HIDE' : 'UNHIDE';
+            
+            if (confirm(`Are you sure you want to ${actionText} this post from the public feed?`)) {
+                try {
+                    await update(ref(db, `posts/${postId}`), { visibility: newVis });
+                    showToast(`Post is now ${newVis === 'private' ? 'Hidden' : 'Public'}!`, "success");
+                } catch (error) {
+                    showToast("Failed to update post visibility.", "error");
+                }
+            }
+        };
+
+        // 3. Delete Post Completely
+        window.deletePostAdmin = async (postId) => {
+            if (confirm("Are you sure you want to permanently DELETE this post? This action cannot be undone.")) {
+                try {
+                    await remove(ref(db, `posts/${postId}`));
+                    // পোস্ট ডিলিট করার পর তার রিপোর্টগুলোও অটো ক্লিয়ার করে দেওয়া হচ্ছে 
+                    window.clearPostReports(postId, false); 
+                    showToast("Post deleted successfully.", "success");
+                } catch (error) {
+                    showToast("Failed to delete post.", "error");
+                }
+            }
+        };
+
+        // 4. Clear all reports for a specific Post
+        window.clearPostReports = async (postId, showConfirmMsg = true) => {
+            if (!showConfirmMsg || confirm("Clear all reports for this post?")) {
+                try {
+                    const snap = await get(ref(db, 'admin/reports'));
+                    if (snap.exists()) {
+                        const updates = {};
+                        snap.forEach(c => {
+                            if (c.val().postId === postId) {
+                                updates[c.key] = null; // Mark for deletion
+                            }
+                        });
+                        await update(ref(db, 'admin/reports'), updates);
+                        if(showConfirmMsg) showToast("Reports cleared successfully.", "success");
+                    }
+                } catch (error) {
+                    if(showConfirmMsg) showToast("Failed to clear reports.", "error");
+                }
+            }
+        };
+        window.deleteNotification = async (key) => {
+            if(confirm("Are you sure you want to delete this notification?")) {
+                try {
+                    await remove(ref(db, `admin/notifications/${key}`));
+                    showToast("Notification deleted!", "success");
+                } catch(e) {
+                    showToast("Failed to delete notification.", "error");
+                }
+            }
+        };
+// ==========================================
+        // MONETIZATION ACTION LOGIC
+        // ==========================================
+        
+        // Approve / Reject Monetization
+        window.handleMonetization = async (uid, action) => {
+            const actionText = action === 'approved' ? 'APPROVE' : 'REJECT / BAN';
+            if(confirm(`Are you sure you want to ${actionText} monetization for this user?`)) {
+                try {
+                    await update(ref(db, `monetization/${uid}`), { status: action });
+                    showToast(`User monetization ${action}!`, "success");
+                } catch(e) {
+                    showToast("Failed to update status.", "error");
+                }
+            }
+        };
+
+        // Set RPM (Revenue Per Mille / 1000 views)
+        window.setCreatorRPM = async (uid, currentRpm) => {
+            const newRpm = prompt("Enter new RPM (Taka per 1000 views):", currentRpm);
+            if (newRpm !== null && newRpm.trim() !== "" && !isNaN(newRpm)) {
+                try {
+                    await update(ref(db, `monetization/${uid}`), { rpm: parseFloat(newRpm) });
+                    showToast("RPM updated successfully!", "success");
+                } catch(e) {
+                    showToast("Failed to update RPM.", "error");
+                }
+            }
+        };
+
+        // ==========================================
+        // WITHDRAW ACTION LOGIC (Include Refund logic)
+        // ==========================================
+        
+        window.handleWithdrawRequest = async (uid, reqKey, amount, action) => {
+            let confirmMsg = action === 'completed' 
+                ? `Did you successfully send ৳${amount} to this user? Mark as Paid?` 
+                : `Reject request? ৳${amount} will be REFUNDED to the user's dashboard balance.`;
+                
+            if(confirm(confirmMsg)) {
+                try {
+                    // ১. রিকোয়েস্টের স্ট্যাটাস আপডেট করা
+                    await update(ref(db, `withdrawals/${uid}/${reqKey}`), { status: action });
+                    
+                    // ২. যদি রিজেক্ট করা হয়, তাহলে ইউজারের ব্যালেন্সে টাকা ফেরত (Refund) দেওয়া
+                    if(action === 'rejected') {
+                        const monRef = ref(db, `monetization/${uid}`);
+                        get(monRef).then(snap => {
+                            if(snap.exists()) {
+                                const currentBalance = snap.val().balance || 0;
+                                update(monRef, { balance: currentBalance + amount });
+                            }
+                        });
+                        showToast(`Request Rejected. ৳${amount} refunded to user.`, "warning");
+                    } else {
+                        showToast("Withdraw request marked as Completed!", "success");
+                    }
+                } catch(e) {
+                    showToast("Failed to process withdraw request.", "error");
+                }
+            }
+        };
+        // ==========================================
+        // ADVANCED SEARCH SYSTEM LOGIC
+        // ==========================================
+
+        const HISTORY_KEY = 'admin_search_history';
+
+        // Load History on start
+        window.loadSearchHistory = () => {
+            const container = document.getElementById('search-history-container');
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            container.innerHTML = '';
+            
+            if (history.length === 0) {
+                container.innerHTML = '<span style="color:#666; font-size:0.85rem;">No recent searches.</span>';
+                return;
+            }
+
+            history.forEach(query => {
+                container.innerHTML += `
+                    <div class="search-history-tag" onclick="document.getElementById('global-search-input').value='${query}'; performAdvancedSearch();">
+                        <i class="fas fa-history"></i> ${query}
+                    </div>
+                `;
+            });
+            
+            // Add clear button
+            container.innerHTML += `<div class="search-history-tag" style="color: var(--danger); border-color: var(--danger);" onclick="clearSearchHistory()">
+                <i class="fas fa-trash"></i> Clear
+            </div>`;
+        };
+
+        window.saveSearchHistory = (query) => {
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            if (!history.includes(query)) {
+                history.unshift(query); // Add to beginning
+                if (history.length > 8) history.pop(); // Keep max 8 history items
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                loadSearchHistory();
+            }
+        };
+
+        window.clearSearchHistory = () => {
+            localStorage.removeItem(HISTORY_KEY);
+            loadSearchHistory();
+        };
+
+        // Call load history initially
+        setTimeout(loadSearchHistory, 1000);
+
+        window.performAdvancedSearch = async () => {
+            const query = document.getElementById('global-search-input').value.trim();
+            if (!query) return showToast("Please enter a User ID, UID, or Post ID!", "error");
+
+            const resultsContainer = document.getElementById('search-results-container');
+            resultsContainer.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Searching...</div>';
+
+            saveSearchHistory(query);
+
+            let foundUser = null;
+            let foundPost = null;
+
+            // 1. Search in Users (UID and User ID)
+            if (usersData[query]) {
+                foundUser = { uid: query, ...usersData[query] }; // Matched UID
+            } else {
+                for (let uid in usersData) {
+                    if (usersData[uid].userId === query) {
+                        foundUser = { uid: uid, ...usersData[uid] }; // Matched Custom User ID
+                        break;
+                    }
+                }
+            }
+
+            // 2. If User not found, Search in Posts
+            if (!foundUser) {
+                try {
+                    const postSnap = await get(ref(db, `posts/${query}`));
+                    if (postSnap.exists()) {
+                        foundPost = { id: query, ...postSnap.val() };
+                    }
+                } catch (error) {
+                    console.error("Post search error:", error);
+                }
+            }
+
+            // 3. Render Results
+            if (foundUser) {
+                renderUserResult(foundUser);
+            } else if (foundPost) {
+                renderPostResult(foundPost);
+            } else {
+                resultsContainer.innerHTML = `
+                    <div class="glass" style="padding:40px; text-align:center; border-radius:20px; color:var(--danger); margin-top:20px;">
+                        <i class="fas fa-search-minus fa-3x" style="margin-bottom:15px; opacity:0.8;"></i>
+                        <h3 style="color: white;">No Result Found</h3>
+                        <p style="color: #ccc; margin-top: 5px;">No User or Post matches the ID: <strong>${query}</strong></p>
+                    </div>`;
+            }
+        };
+
+        window.renderUserResult = (user) => {
+            const container = document.getElementById('search-results-container');
+            const isVerified = user.isVerified === true;
+            const status = user.status || 'active';
+            
+            let blockBtn = status === 'blocked' 
+                ? `<button class="btn-sm btn-success" onclick="toggleUserStatus('${user.uid}', 'blocked')"><i class="fas fa-unlock"></i> Unsuspend</button>` 
+                : `<button class="btn-sm btn-warning" onclick="toggleUserStatus('${user.uid}', 'active')"><i class="fas fa-ban"></i> Suspend Account</button>`;
+            
+            let verifyBtn = isVerified 
+                ? `<button class="btn-sm btn-danger" onclick="toggleVerification('${user.uid}', true)"><i class="fas fa-times-circle"></i> Remove Blue Tick</button>` 
+                : `<button class="btn-sm btn-info" onclick="toggleVerification('${user.uid}', false)"><i class="fas fa-check-circle"></i> Add Blue Tick</button>`;
+
+            // Count logic
+            const followersCount = user.followers ? Object.keys(user.followers).length : 0;
+            const followingCount = user.following ? Object.keys(user.following).length : 0;
+// User এর Joined Time বের করার সঠিক নিয়ম
+let joinDate = 'Not Available';
+if (user.createdDate) {
+    joinDate = user.createdDate; // মূল অ্যাপ থেকে পাঠানো string ফরম্যাট
+} else if (user.createdAt || user.timestamp || user.time) {
+    const ts = user.createdAt || user.timestamp || user.time;
+    joinDate = new Date(ts).toLocaleString();
+}
+            container.innerHTML = `
+                <div class="search-result-card glass">
+                    <img src="${user.dpUrl || 'https://via.placeholder.com/100'}" class="search-result-image">
+                    <div class="search-result-details">
+                        <h4>${user.name || 'Unnamed User'} ${isVerified ? '<i class="fas fa-check-circle" style="color: var(--info); font-size:1rem;"></i>' : ''}</h4>
+                        <p><i class="fas fa-id-badge" style="width:20px;"></i> <strong>User ID:</strong> <span style="color:#00e5ff">${user.userId || 'N/A'}</span></p>
+                        <p><i class="fas fa-fingerprint" style="width:20px;"></i> <strong>UID:</strong> ${user.uid}</p>
+                        <p><i class="fas fa-envelope" style="width:20px;"></i> <strong>Email:</strong> ${user.email || 'N/A'}</p>
+                        <p><i class="fas fa-calendar-alt" style="width:20px;"></i> <strong>Joined:</strong> ${joinDate}</p>
+                        <p><i class="fas fa-users" style="width:20px;"></i> <strong>Followers:</strong> ${followersCount} | <strong>Following:</strong> ${followingCount}</p>
+                        <p><i class="fas fa-shield-alt" style="width:20px;"></i> <strong>Status:</strong> <span style="color: ${status === 'blocked' ? 'var(--danger)' : 'var(--success)'}; text-transform: uppercase;">${status}</span></p>
+                        
+                        <div class="search-result-actions">
+                            ${blockBtn}
+                            ${verifyBtn}
+                            <button class="btn-sm btn-danger" onclick="deleteDataRecord('users/${user.uid}', 'User')"><i class="fas fa-trash"></i> Delete User completely</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.renderPostResult = (post) => {
+            const container = document.getElementById('search-results-container');
+            const owner = usersData[post.uid] || { name: 'Unknown User', userId: 'N/A' };
+            const isHidden = post.visibility === 'private';
+            
+            const likesCount = post.likes ? Object.keys(post.likes).length : 0;
+            const commentsCount = post.comments ? Object.keys(post.comments).length : 0;
+            const sharesCount = post.shares || 0;
+            // Post এর Upload Time বের করার সঠিক নিয়ম
+let uploadDate = 'Unknown';
+if (post.createdDate) {
+    uploadDate = post.createdDate; // মূল অ্যাপ থেকে পাঠানো string ফরম্যাট
+} else if (post.ts || post.timestamp) {
+    const ts = post.ts || post.timestamp;
+    uploadDate = new Date(ts).toLocaleString();
+}
+
+            let mediaHtml = '<div style="width:100px; height:100px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; border-radius:15px; border:2px solid var(--glass-border);"><i class="fas fa-font fa-2x"></i></div>';
+            
+            if (post.img) {
+                const firstMedia = post.img.split(',')[0].trim();
+                if (window.isVideoURL(firstMedia)) {
+                    mediaHtml = `<video src="${firstMedia}" class="search-result-image" controls playsinline></video>`;
+                } else {
+                    mediaHtml = `<img src="${firstMedia}" class="search-result-image" onclick="window.open('${firstMedia}', '_blank')" style="cursor:pointer;" title="Click to view full image">`;
+                }
+            }
+
+            container.innerHTML = `
+                <div class="search-result-card glass">
+                    ${mediaHtml}
+                    <div class="search-result-details">
+                        <h4>Post Details</h4>
+                        <p><i class="fas fa-hashtag" style="width:20px;"></i> <strong>Post ID:</strong> <span style="color:#00e5ff">${post.id}</span></p>
+                        <p><i class="fas fa-user-circle" style="width:20px;"></i> <strong>Owner:</strong> ${owner.name} (@${owner.userId})</p>
+                        <p><i class="fas fa-fingerprint" style="width:20px;"></i> <strong>Owner UID:</strong> <span style="font-size:0.8rem">${post.uid}</span></p>
+                        <p><i class="fas fa-clock" style="width:20px;"></i> <strong>Uploaded:</strong> ${uploadDate}</p>
+                        
+                        <div style="margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.9rem;">
+                            <strong>Caption:</strong><br>
+                            ${post.text || '<i>No caption</i>'}
+                        </div>
+
+                        <div style="display:flex; gap:15px; font-size:0.9rem; color:var(--info); margin-bottom:10px;">
+                            <span><i class="fas fa-thumbs-up"></i> ${likesCount} Likes</span>
+                            <span><i class="fas fa-comment"></i> ${commentsCount} Comments</span>
+                            <span><i class="fas fa-share"></i> ${sharesCount} Shares</span>
+                            <span><i class="fas fa-eye"></i> Status: <span style="color:${isHidden ? 'var(--danger)' : 'var(--success)'}">${isHidden ? 'Hidden' : 'Public'}</span></span>
+                        </div>
+                        
+                        <div class="search-result-actions">
+                            <button class="btn-sm btn-info" onclick="copyPostLinkAdmin('${post.id}')"><i class="fas fa-link"></i> Copy Link</button>
+                            <button class="btn-sm ${isHidden ? 'btn-success' : 'btn-warning'}" onclick="togglePostVisibilityAdmin('${post.id}', '${post.visibility}')">
+                                <i class="fas fa-${isHidden ? 'eye' : 'eye-slash'}"></i> ${isHidden ? 'Unhide Post' : 'Hide Post'}
+                            </button>
+                            <button class="btn-sm btn-danger" onclick="deletePostAdmin('${post.id}')"><i class="fas fa-trash"></i> Delete Post</button>
+                            <button class="btn-sm" style="background:#444;" onclick="document.getElementById('global-search-input').value='${post.uid}'; performAdvancedSearch();"><i class="fas fa-user"></i> View Owner Profile</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+            
+    </script>
+  <!-- ======================================================== -->
+<!-- TELEGRAM SETTINGS JAVASCRIPT LOGIC (PASTE BEFORE </body>) -->
+<!-- ======================================================== -->
+<script>
+// আপনার ব্যাকএন্ড API এর লাইভ ডোমেইন URL এখানে বসাবেন
+const ADMIN_API_URL = 'https://your-api-domain.com';
+
+function showAdminAlert(message, type) {
+  const box = document.getElementById('statusAlertBox');
+  if (!box) return;
+  box.style.display = 'block';
+  box.className = 'status-box ' + type;
+  box.innerHTML = message;
+}
+
+// ১. সেটিংস সেভ করার ফাংশন (Window Object-এ যুক্ত করা হয়েছে যাতে সর্বত্র পাওয়া যায়)
+window.saveTelegramSettings = async function() {
+  const settingsData = {
+    enabled: document.getElementById('tgEnabled') ? document.getElementById('tgEnabled').checked : true,
+    botToken: document.getElementById('tgBotToken') ? document.getElementById('tgBotToken').value.trim() : '',
+    channelId: document.getElementById('tgChannelId') ? document.getElementById('tgChannelId').value.trim() : '',
+    mediaBaseUrl: document.getElementById('tgApiUrl') ? document.getElementById('tgApiUrl').value.trim() : '',
+    maxFileSizeMB: document.getElementById('tgMaxSize') ? parseInt(document.getElementById('tgMaxSize').value) : 50,
+    allowedTypes: {
+      image: document.getElementById('allowImg') ? document.getElementById('allowImg').checked : true,
+      video: document.getElementById('allowVid') ? document.getElementById('allowVid').checked : true,
+      audio: document.getElementById('allowAud') ? document.getElementById('allowAud').checked : true,
+      document: document.getElementById('allowDoc') ? document.getElementById('allowDoc').checked : true
+    }
+  };
+
+  showAdminAlert('⏳ সেটিংস সেভ হচ্ছে...', 'loading');
+
+  try {
+    const res = await fetch(`${ADMIN_API_URL}/api/admin/settings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settingsData)
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      showAdminAlert('✅ সেটিংস সফলভাবে সেভ হয়েছে!', 'success');
+    } else {
+      showAdminAlert('❌ সেভ ব্যর্থ হয়েছে: ' + (result.message || 'Error'), 'error');
+    }
+  } catch (err) {
+    showAdminAlert('❌ সার্ভার কানেকশন এরর: ' + err.message, 'error');
+  }
+};
+
+// ২. টেলিগ্রাম সংযোগ টেস্ট করার ফাংশন
+window.testTelegramConnection = async function() {
+  const botToken = document.getElementById('tgBotToken') ? document.getElementById('tgBotToken').value.trim() : '';
+  const channelId = document.getElementById('tgChannelId') ? document.getElementById('tgChannelId').value.trim() : '';
+
+  if (!botToken || !channelId) {
+    showAdminAlert('⚠️ দয়া করে Bot Token এবং Channel ID দুটিই পূরণ করুন!', 'error');
+    return;
+  }
+
+  showAdminAlert('🔄 টেলিগ্রাম সংযোগ পরীক্ষা করা হচ্ছে...', 'loading');
+
+  try {
+    const res = await fetch(`${ADMIN_API_URL}/api/telegram/test-connection`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ botToken, channelId })
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      showAdminAlert('✅ ' + result.message, 'success');
+    } else {
+      showAdminAlert('❌ ' + result.message, 'error');
+    }
+  } catch (err) {
+    showAdminAlert('❌ সংযোগ ব্যর্থ: ' + err.message, 'error');
+  }
+};
+
+// ৩. টেস্ট ফাইল আপলোড করার ফাংশন
+window.executeTestUpload = async function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  showAdminAlert(`📤 "${file.name}" টেস্ট আপলোড হচ্ছে...`, 'loading');
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch(`${ADMIN_API_URL}/api/telegram/test-upload`, {
+      method: 'POST',
+      body: formData
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      showAdminAlert('✅ টেস্ট ফাইল সফলভাবে চ্যানেলে আপলোড হয়েছে!', 'success');
+    } else {
+      showAdminAlert('❌ টেস্ট আপলোড ব্যর্থ: ' + (result.message || 'Error'), 'error');
+    }
+  } catch (err) {
+    showAdminAlert('❌ আপলোড এরর: ' + err.message, 'error');
+  }
+};
+</script>
+</body>
+</html>
